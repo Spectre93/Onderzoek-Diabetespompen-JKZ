@@ -1,0 +1,10 @@
+extends ./layout.jade
+
+block head
+	script(type='text/javascript', src='javascripts/home.js')
+		
+block bodyContent
+	.jumbotron
+		h1 Home
+		input#search(type="search", placeholder="Search")
+		h2#results

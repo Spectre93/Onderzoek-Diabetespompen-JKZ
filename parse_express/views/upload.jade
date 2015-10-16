@@ -1,0 +1,12 @@
+extends ./layout.jade
+
+block head
+	script(type='text/javascript', src='javascripts/upload.js')
+		
+block bodyContent
+	.jumbotron
+		h1 Upload
+		form(action='http://127.0.0.1:3000/file_upload', method='POST', enctype='multipart/form-data')
+			input(type='file', name='file', size='50')
+			br
+			input(type='submit', value='Upload File')

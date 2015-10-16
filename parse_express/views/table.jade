@@ -1,0 +1,24 @@
+extends ./layout.jade
+
+block head
+	script(type='text/javascript', src='javascripts/table.js')
+	script(type='text/javascript', src='javascripts/dataTables/jquery.dataTables.min.js')
+	script(type='text/javascript', src='javascripts/dataTables/dataTables.bootstrap.min.js')
+	link(rel='stylesheet', type="text/css", href='stylesheets/dataTables/dataTables.bootstrap.min.css')
+		
+block bodyContent
+	.tableContainer
+		table#dattable.table.table-striped
+			thead#tableHeader
+				tr
+					each fieldName,index in Results.meta.fields
+						if(Blacklist.indexOf(index) == -1)
+							th= fieldName
+			tbody#tableBody
+				each entry in Results.data
+					- var i = 0;
+					tr
+						each field in entry
+							if(Blacklist.indexOf(i) == -1)
+								td= field
+							- i = i + 1
