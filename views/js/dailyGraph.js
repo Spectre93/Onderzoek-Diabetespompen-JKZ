@@ -131,11 +131,7 @@ var bolusEventData = [{
 	"BWZ Active Insulin (U)"						: 0
 }];
 
-$(document).ready(function(){
-	$(function() {
-    $( "#datepicker" ).datepicker({});
-  });
-			
+$(document).ready(function(){			
 	$.get('/getGraphData',parameters,function(data){	
 		buildChart(data);
 		buildStatTable(tableData);

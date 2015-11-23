@@ -1,10 +1,17 @@
 doctype html
 html(lang='en')
 	head
-		//meta(http-equiv='Content-Type', content='text/html;charset=utf-8')
-		link(rel='stylesheet', type="text/css", href='stylesheets/bootstrap.min.css')
-		link(rel='stylesheet', type="text/css", href='stylesheets/style.css')
-		script(type='text/javascript', src='javascripts/jquery-2.1.4.min.js')
+		meta(charset='utf-8')
+		meta(name='viewport', content='width=device-width, initial-scale=1')
+		
+		link(rel='stylesheet', type="text/css", href='css/bootstrap.min.css')
+		link(rel='stylesheet', type="text/css", href='css/style.css')
+		
+		link(rel='stylesheet/less', type='text/css', href='/css/variables.less')
+		link(rel='stylesheet/less', type='text/css', href='/css/bootstrap.less')
+		
+		script(type='text/javascript', src='js/jquery-2.1.4.min.js')
+		script(src='js/bootstrap.min.js')
 		
 		title= title	
 
@@ -12,14 +19,62 @@ html(lang='en')
 	body
 		nav.navbar.navbar-inverse.navbar-fixed-top
 			.container
-				a.navbar-brand(href='/') HagaZiekenhuis
-				ul.nav.navbar-nav
-					- var array = ["Home","Table","Graph","MoreGraphs"]
-					each fieldName in array
-						if(fieldName == title)
-							li.active
-								a(href='/#{fieldName}') #{fieldName}
+				.navbar-header
+					a.navbar-brand(href='/') HagaZiekenhuis
+					button.navbar-toggle(type='button', data-toggle='collapse', data-target='#navbar-main')
+						span.icon-bar
+						span.icon-bar
+						span.icon-bar
+				#navbar-main.navbar-collapse.collapse
+					ul.nav.navbar-nav
+						li
+							a(href='/table') Table
+						li
+							a(href='/dailyGraph') DailyGraph
+						li
+							a(href='/moreGraphs') MoreGraphs
+						if (readFile || items)
+							li
+								a(href='/graph') Grafiek
+							li
+								a(href='/readings') Waarden
 						else
 							li
-								a(href='/#{fieldName}') #{fieldName}
-		block bodyContent
+								a(href='/fileupload') Uploaden
+						if !user
+							li
+								a(href='/register') Registreren
+						else
+							li
+								a(href='/profile') Profiel
+							li
+								a(href='/logout') Afmelden					
+		.container
+			.bs-docs-section
+				.page-header
+					.row
+						.col-lg-12
+							h1(style='margin-top:1.5em') #{header}
+				.row
+					if messages
+						if messages.error
+							each msg in messages.error
+								.alert.alert-dismissable.alert-danger
+									button.close(data-dismiss='alert', type='button') &times;
+									p #{msg}
+						if messages.info
+							each msg in messages.info
+								.alert.alert-dismissable.alert-info
+									button.close(data-dismiss='alert', type='button') &times;
+									p #{msg}
+						if messages.success
+							each msg in messages.success
+								.alert.alert-dismissable.alert-success
+									button.close(data-dismiss='alert', type='button') &times;
+									p #{msg}
+						if messages.warning
+							each msg in messages.warning
+								.alert.alert-dismissable.alert-warning
+									button.close(data-dismiss='alert', type='button') &times;
+									p #{msg}
+					block body

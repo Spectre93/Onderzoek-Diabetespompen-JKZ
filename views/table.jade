@@ -1,12 +1,12 @@
 extends ./layout.jade
 
 block head
-	script(type='text/javascript', src='javascripts/table.js')
-	script(type='text/javascript', src='javascripts/dataTables/jquery.dataTables.min.js')
-	script(type='text/javascript', src='javascripts/dataTables/dataTables.bootstrap.min.js')
-	link(rel='stylesheet', type="text/css", href='stylesheets/dataTables/dataTables.bootstrap.min.css')
+	script(type='text/javascript', src='js/table.js')
+	script(type='text/javascript', src='js/dataTables/jquery.dataTables.min.js')
+	script(type='text/javascript', src='js/dataTables/dataTables.bootstrap.min.js')
+	link(rel='stylesheet', type="text/css", href='css/dataTables/dataTables.bootstrap.min.css')
 		
-block bodyContent
+block body
 	.container
 		table#datatable.table.table-striped
 			thead#tableHeader
