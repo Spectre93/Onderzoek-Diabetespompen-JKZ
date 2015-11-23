@@ -63,15 +63,15 @@ table#eventTable td:nth-child(odd){
 	background-color: #fbfbfb;
 }
 
-th.bolus{
+.bolus{
 	background-color: #d6f5d6;
 }
 
-th.bgl{
+.bgl{
 	background-color: #ffffb3;
 }
 
-th.food{	
+.food{	
 	background-color: #f6e9fc;
 }
 
