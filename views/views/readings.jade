@@ -1,0 +1,102 @@
+extends layout
+
+block body
+	body
+		script(type='text/javascript', src='js/fillModal.js')
+		- var jsonArr = JSON.parse(readFile)
+		- var bolusRead = false
+		- var basalRead = false
+		- var glucoseRead = false
+		// script.
+			var jsonString = JSON.parse(readFile)
+		p
+			| #{readFile}
+		#container.col-lg-12
+			.panel.panel-primary
+				.panel-heading Gegevens OmniPod
+				table.table.table-striped
+					thead
+						//-
+							tr
+							th ID
+							th Datum en tijdstip
+							th Categorie
+							th Waarde
+							th Omschrijving
+							th Commentaar
+					tbody
+						each val, index in jsonArr.length ? jsonArr : ['Er zijn geen waardes']
+							tr
+								th= val.day
+								td= '00'
+								td= '01'
+								td= '02'
+								td= '03'
+								td= '04'
+								td= '05'
+								td= '06'
+								td= '07'
+								td= '08'
+								td= '09'
+								td= '10'
+								td= '11'
+								td= '12'
+								td= '13'
+								td= '14'
+								td= '15'
+								td= '16'
+								td= '17'
+								td= '18'
+								td= '19'
+								td= '20'
+								td= '21'
+								td= '22'
+								td= '23'
+							tr(data-id= val.ids)
+								td= "Basaal"
+								- for (var i = 0; i < 24; i++) {
+									- var seen = [];
+									- var brk = false;
+									each hour, index2 in val.basalHours
+										- if (seen.indexOf(hour) === -1) {
+											- seen.push(hour);
+											if hour == i
+												td= val.basalValues[index2]
+										- } else {
+											td= i
+											- break;
+										- }
+									- if (brk) break;
+								- }
+							tr(data-id= val.ids)
+								td= "Glucose"
+								- for (var i = 0; i < 24; i++) {
+									each hour in val.glucoseHours
+										if hour == i
+											if val.glucoseValues[i]
+												td= val.glucoseValues[i]
+											else
+												td= ""
+								- }
+							tr(data-id= val.ids)
+								td= "Bolus"
+								- for (var i = 0; i < 24; i++) {
+									each hour in val.bolusHours
+										if hour == i
+											if val.bolusValues[i]
+												td= val.bolusValues[i]
+											else
+												td= ""
+								- }
+		#detailModal.modal.fade(role='dialog', aria-labelledby='detailModalLabel', aria-hidden='true')
+			.modal-dialog
+				.modal-content
+					.modal-header
+						button.close(type='button', data-dismiss='modal', aria-label='Sluiten', aria-hidden='true') &times;
+						|          
+						h3.modal-title Waarde
+					|     
+					#itemDetails.modal-body
+					|     
+					.modal-footer
+						button.btn(data-dismiss='modal', aria-hidden='true') Sluiten
