@@ -14,12 +14,9 @@ html(lang='en')
 			.container
 				a.navbar-brand(href='/') HagaZiekenhuis
 				ul.nav.navbar-nav
-					- var array = ["Home","Table","Graph","Upload"]
+					- var array = ["Home","Table","Graph","MoreGraphs"]
 					each fieldName in array
-						if(fieldName == "Home" && title == "Home")
-							li.active
-								a(href='/') #{fieldName}
-						else if(fieldName == title)
+						if(fieldName == title)
 							li.active
 								a(href='/#{fieldName}') #{fieldName}
 						else

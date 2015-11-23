@@ -7,8 +7,8 @@ block head
 	link(rel='stylesheet', type="text/css", href='stylesheets/dataTables/dataTables.bootstrap.min.css')
 		
 block bodyContent
-	.tableContainer
-		table#dattable.table.table-striped
+	.container
+		table#datatable.table.table-striped
 			thead#tableHeader
 				tr
 					each fieldName,index in Results.meta.fields
