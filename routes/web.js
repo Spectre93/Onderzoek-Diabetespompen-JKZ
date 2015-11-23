@@ -100,7 +100,7 @@ module.exports = (function() {
   	router.get('/dailyGraph', function(req, res){
       res.render('dailyGraph', {
         title: 'Grafiek Paradigm Veo',
-        header: 'Grafiek'
+        header: 'Grafiek',
         readFile: req.session.file
       });
   	});
