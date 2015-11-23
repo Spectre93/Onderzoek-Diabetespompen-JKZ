@@ -1,0 +1,22 @@
+extends ./layout.jade
+
+block head
+	script(type='text/javascript', src='js/amcharts/amcharts.js')
+	script(type='text/javascript', src='js/amcharts/serial.js')
+	script(type='text/javascript', src='js/amcharts/themes/light.js')
+	script(type='text/javascript', src='js/amcharts/pie.js')
+	script(type='text/javascript', src='js/dailyGraph.js')
+		
+block body
+	.bodycontainer
+		.container
+			#chartdiv
+			#statisticsdiv
+				table#graphTable.table.table-bordered.table-striped
+					thead#statTableHeader
+					tbody#statTableBody
+				#bolusGraph
+		.container
+			div#boluseventsdiv
+				table#eventTable.table.table-bordered
+					tbody#eventTableBody

@@ -8,7 +8,7 @@ exports.getData = function(fileName){
 	var baby = require("babyparse");
 	var fs = require('fs');
 	
-	var file = fs.readFileSync("public/files/"+ fileName).toString();
+	var file = fs.readFileSync("views/files/"+ fileName).toString();
 	if(fileName == "realData.csv")	//DEBUG
 		file = getTheRightData(file);
 	

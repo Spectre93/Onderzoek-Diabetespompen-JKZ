@@ -1,27 +1,118 @@
-extends ./layout.jade
-
-block head
-	script(type='text/javascript', src='javascripts/amcharts3/amcharts.js')
-	script(type='text/javascript', src='javascripts/amcharts3/serial.js')
-	script(type='text/javascript', src='javascripts/amcharts3/light.js')
-	script(type='text/javascript', src='javascripts/amcharts3/pie.js')
-	script(type='text/javascript', src='javascripts/graph.js')
-	script(type='text/javascript', src='javascripts/jquery-ui.min.js')
-	link(rel='stylesheet', type="text/css", href='stylesheets/jquery-ui/jquery-ui.min.css')
-		
-block bodyContent
-	.bodycontainer
-		.container
-			p
-				| Date: 
-				input#datepicker(type='text')
-			#chartdiv
-			#statisticsdiv
-				table#graphTable.table.table-bordered.table-striped
-					thead#statTableHeader
-					tbody#statTableBody
-				#bolusGraph
-		.container
-			div#boluseventsdiv
-				table#eventTable.table.table-bordered
-					tbody#eventTableBody
+extends layout
+block body
+	body
+		script(src='http://www.amcharts.com/lib/3/amcharts.js', type='text/javascript')
+		script(src='http://www.amcharts.com/lib/3/serial.js', type='text/javascript')
+		script(src='http://www.amcharts.com/lib/3/themes/light.js', type='text/javascript')
+		#container.col-lg-12
+			#chartdiv(style='width: 700px; height: 500px;')
+			script(type='text/javascript').
+				var chartData = !{items}
+				AmCharts.ready(function() {
+					// chart code will go here
+					var chart = new AmCharts.AmSerialChart(AmCharts.themes.light);
+					chart.dataProvider = chartData;
+					chart.categoryField = 'datum';
+					chart.dataDateFormat = 'YYYY-DD-MM JJ:NN:SS';
+					chart.minSelectedTime = 10800000;
+					chart.legend = {
+						//useGraphSettings: true,
+						valueText: "",
+						rollOverGraphAlpha: 0.3,
+						switchType: 'x'
+					};
+					
+					var scrollbar = new AmCharts.ChartScrollbar();
+					scrollbar.offset = 5;
+					scrollbar.scrollbarHeight = 30;
+					chart.chartScrollbar = scrollbar;
+					
+					var cursor = new AmCharts.ChartCursor();
+					cursor.categoryBalloonDateFormat = 'DD-MM-YYYY JJ:NN';
+					chart.chartCursor = cursor;
+					
+					var graph = new AmCharts.AmGraph();
+					graph.type = 'line';
+					graph.lineAlpha = 0;
+					graph.labelPosition = 'right';
+					graph.labelText = '[[value]] mmol/L';
+					graph.valueField = 'waarde';
+					graph.title = 'Glucosewaarden';
+					//graph.connect = false;
+					graph.bullet = 'round';
+					graph.balloonText = '[[category]]<br><b>[[value]]</b> mmol/L';
+					
+					scrollbar.graph = graph;
+					chart.addGraph(graph);
+					
+					var graph2 = new AmCharts.AmGraph();
+					graph2.type = 'line';
+					graph2.lineAlpha = 0;
+					graph2.labelText = '[[value]]g';
+					graph2.valueField = 'waardeCarbs';
+					graph2.title = 'Koolhydraten';
+					graph2.bullet = 'diamond';
+					graph2.balloonText = '[[category]]<br><b>[[value]]</b> gram';
+					
+					chart.addGraph(graph2);
+					
+					var graph3 = new AmCharts.AmGraph();
+					graph3.type = 'step';
+					graph3.behindColumns = true;
+					graph3.valueField = 'waardeBasal';
+					graph3.title = 'Basaalwaarden';
+					graph3.balloonText = '[[category]]<br><b>[[value]]</b> eenheden';
+					
+					chart.addGraph(graph3);
+					
+					var graph4 = new AmCharts.AmGraph();
+					graph4.type = 'column';
+					graph4.columnWidth = 15;
+					graph4.clustered = false;
+					graph4.lineColor = '#62cf73';
+					graph4.fillColor = '#62cf73';
+					graph4.alphaFillOpacity = 0;
+					graph4.fillAlphas = 1;
+					graph4.valueField = 'waardeBolus';
+					graph4.title = 'Boluswaarden';
+					graph4.balloonText = '[[category]]<br><b>[[value]]</b> eenheden';
+					
+					chart.addGraph(graph4);
+					
+					var categoryAxis = chart.categoryAxis;
+					categoryAxis.minPeriod = 'mm';
+					categoryAxis.parseDates = true;
+					//categoryAxis.equalSpacing = true;
+					categoryAxis.autoGridCount = false;
+					categoryAxis.gridCount = chartData.length;
+					categoryAxis.gridPosition = 'start';
+					categoryAxis.labelRotation = 90;
+					//categoryAxis.boldPeriodBeginning = false;
+					categoryAxis.dateFormats = [{
+							period: 'fff',
+							format: 'JJ:NN:SS'
+					}, {
+							period: 'ss',
+							format: 'D-M-YYYY JJ:NN'
+					}, {
+							period: 'mm',
+							format: 'D-M-YYYY JJ:NN'
+					}, {
+							period: 'hh',
+							format: 'JJ:NN'
+					}, {
+							period: 'DD',
+							format: 'MM-DD'
+					}, {
+							period: 'WW',
+							format: 'MM-DD'
+					}, {
+							period: 'MM',
+							format: 'MM YYYY'
+					}, {
+							period: 'YYYY',
+							format: 'MM YYYY'
+					}];
+					
+					chart.write('chartdiv');
+				})

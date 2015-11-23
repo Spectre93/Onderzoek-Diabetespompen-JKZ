@@ -1,0 +1,10 @@
+extends layout
+
+block body
+	body
+		#container.col-lg-12
+			form#uploadForm(enctype='multipart/form-data', action='/upload', method='post')
+				.form-group
+					input(type='file', name='xml')
+				.form-group
+					button#submitBtn.btn.btn-sm.btn-primary(type='submit') Bestand uploaden
