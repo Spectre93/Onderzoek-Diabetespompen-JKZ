@@ -169,7 +169,8 @@ function buildChart(data){
 			"valueText": "",
 			"rollOverGraphAlpha": 0.1,
 			"switchType": "v",
-			"maxColumns": 3
+			"maxColumns": 3,
+			"switchType": "x"
 		},
     "graphs": [{
 				"id": "basalRate",
