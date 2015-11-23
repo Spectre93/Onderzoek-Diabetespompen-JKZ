@@ -1,18 +1,23 @@
 {
-  "name": "parse_express",
+  "name": "diabetes-node",
   "version": "1.0.0",
-  "description": "Using BabyParse and Express to display parsed data on a webpage.",
-  "main": "index.js",
+  "description": "Webapp for reading and visualising data from diabetes pumps/meters",
+  "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Daniel",
-  "license": "ISC",
+  "author": "Bas Verhoog en Daniël Jansen",
+  "license": "GPL-3.0",
   "dependencies": {
     "babyparse": "^0.4.3",
+    "connect-flash": "^0.1.1",
     "express": "^4.13.3",
-    "html": "0.0.10",
+    "express-session": "^1.11.3",
     "jade": "^1.11.0",
-    "jquery": "^2.1.4"
+    "morgan": "^1.6.1",
+    "multer": "^1.0.6",
+    "object-resolve-path": "^1.1.0",
+    "underscore": "^1.8.3",
+    "xml2js": "^0.4.12"
   }
 }
