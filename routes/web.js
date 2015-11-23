@@ -39,7 +39,7 @@ module.exports = (function() {
         res.render('index', {
             title: "Home",
             header: "Welkom!",
-            activeFile: req.session.file
+            readFile: req.session.file
         });
     });
 
@@ -47,7 +47,7 @@ module.exports = (function() {
         res.render("file-upload", {
             title: "Upload bestand",
             header: "Bestand uploaden",
-            activeFile: req.session.file,
+            readFile: req.session.file,
             messages: req.flash()
         });
     });
@@ -84,9 +84,12 @@ module.exports = (function() {
     router.get('/table', function (req, res) {
   		var blacklist = []//[4,5,13,14,15,16,17,18,30,31,32,19,20,21,22,23,24,25,26,27,28,29]
   		var results = helper.getData("realData.csv");
-  		res.render('table', {	title: 'Table',
-  													Results: results,
-  													Blacklist: blacklist})
+  		res.render('table', {
+        title: 'Table',
+  			Results: results,
+  			Blacklist: blacklist,
+        readFile: req.session.file
+      })
   	});
 
   	router.get('/getGraphData', function(req, res){
@@ -94,11 +97,17 @@ module.exports = (function() {
   	});
 
   	router.get('/dailyGraph', function(req, res){
-  		res.render('dailyGraph', {title: 'Graph'});
+      res.render('dailyGraph', {
+        title: 'Graph',
+        readFile: req.session.file
+      });
   	});
 
   	router.get('/moregraphs', function(req, res){
-  		res.render('moreGraphs', {title: 'More graphs'});
+  		res.render('moreGraphs', {
+        title: 'More graphs',
+        readFile: req.session.file
+      });
   	});
 
   	////////////////////
@@ -325,7 +334,8 @@ module.exports = (function() {
         res.render("graph", {
             title: "Grafiek OmniPod",
             header: "Gemeten waarden",
-            items: JSON.stringify(items)
+            items: JSON.stringify(items),
+            readFile: req.session.file
         });
 
     });
