@@ -85,7 +85,8 @@ module.exports = (function() {
   		var blacklist = []//[4,5,13,14,15,16,17,18,30,31,32,19,20,21,22,23,24,25,26,27,28,29]
   		var results = helper.getData("realData.csv");
   		res.render('table', {
-        title: 'Table',
+        title: 'Tabel Paradigm Veo',
+        header: 'Tabel',
   			Results: results,
   			Blacklist: blacklist,
         readFile: req.session.file
@@ -98,14 +99,16 @@ module.exports = (function() {
 
   	router.get('/dailyGraph', function(req, res){
       res.render('dailyGraph', {
-        title: 'Graph',
+        title: 'Grafiek Paradigm Veo',
+        header: 'Grafiek'
         readFile: req.session.file
       });
   	});
 
   	router.get('/moregraphs', function(req, res){
   		res.render('moreGraphs', {
-        title: 'More graphs',
+        title: 'Meer grafieken',
+        header: 'Grafieken',
         readFile: req.session.file
       });
   	});
@@ -265,7 +268,7 @@ module.exports = (function() {
 
         res.render('readings', {
             title: 'Tabel OmniPod',
-            header: 'Uitgelezen waarden',
+            header: 'Tabel',
             readFile: JSON.stringify(resultObj)
         });
     });
@@ -333,7 +336,7 @@ module.exports = (function() {
 
         res.render("graph", {
             title: "Grafiek OmniPod",
-            header: "Gemeten waarden",
+            header: "Grafiek",
             items: JSON.stringify(items),
             readFile: req.session.file
         });
