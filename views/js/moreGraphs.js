@@ -20,7 +20,9 @@ var endDate = new Date('2015/09/06 00:00:00 UTC+0000');
 var parameters = {startDate: startDate.toString(),endDate: endDate.toString()};
 
 $(document).ready(function() {
-	$.get( '/getGraphData',parameters, function(data) {
+	$.get( '/getGraphData',parameters, function(dataObject) {
+		var data = dataObject.graph;
+		
 		if(data.length == 0){
 			$(".chartcontainer").append( "<h3>Er is geen data over deze tijdsperiode.</h3>" );
 			return;
@@ -75,13 +77,8 @@ $(document).ready(function() {
 					$(".chartcontainer").append( "<div id=\"chart_" + j + "\"></div>" );
 					buildChart("chart_" + j, resultGraphsData[j].periodGraphData);
 				}
-				
-				//console.log(resultGraphsData[j].periodGraphData);
-			}
-			
-			
+			}	
 		}
-		
 	});
 });
 
@@ -94,7 +91,6 @@ function buildChart(id,data){
     "theme": "light",
     "dataDateFormat": "YYYY-MM-DD JJ:NN:SS",
 		"balloonDateFormat": "DD-MM-YYYY JJ:NN",
-		//"mouseWheelZoomEnabled": true,
     "balloon": {
 				"animationDuration": 0,
         "shadowAlpha": 0
@@ -163,8 +159,6 @@ function buildChart(id,data){
 				"valueAxis": "v1",
         "lineThickness": 2,
 				"lineColor": "#96CBFF",
-				//"behindColumns": true,
-				//"type": "step",
 				"showBalloon": false,
         "valueField": "sensorBG"
 		},{
@@ -183,7 +177,6 @@ function buildChart(id,data){
 				"centerLabels": false,
 				"boldPeriodBeginning": true,
         "parseDates": true,
-				//"labelRotation": 45,
 				"minPeriod": "mm"
     },"valueAxes": [{
 			"id": "v1",
@@ -204,8 +197,7 @@ function buildChart(id,data){
 			//"maximum": 150,
 			"gridAlpha": 0
 		},{
-			"id": "v3",
-			//"title": "rewinds",
+			"id": "v3",		//Used for rewinds
 			"position": "right",
 			"axisAlpha": 0,
 			"labelsEnabled": false,

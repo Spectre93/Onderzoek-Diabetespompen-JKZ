@@ -1,3 +1,98 @@
+var tableData = {
+	"Date"										:	"10-08-2015",
+	"Daily carbs (grams)"			: 159,
+	"BG readings"							: 4,
+	"Readings avg. (mmol/L)"	: 11.2,
+	"Fills"										: "2 (10,3U)",
+	
+	"Total insulin (U)"				: 76.4,
+	"Food bolus (U)"							: 23.3,
+	"Correction bolus (U)"				: 5.1,
+	"Basal (U)"								: 48
+	//"-Daily bolus (U)"				: 28.4,
+}
+	
+var donutData = [{
+    "title": "Basal",
+    "value": tableData["Basal (U)"]
+  },{
+    "title": "Corr.",
+    "value": tableData["Correction bolus (U)"]
+  },{
+    "title": "Food",
+    "value": tableData["Food bolus (U)"],
+		"color": "#d38df1"
+  }
+];
+
+var bolusEventData = [{
+	"Index"															: 1,						//Index
+	"Time"															: "01:23",		//Time
+	
+	"BWZ Estimate (U)"									: 5.0, 						//Recommended Bolus
+	"Bolus Type"												: "Normal",			//Bolus Type
+	//"Bolus Volume Selected (U)"					: 5.0,
+	"Bolus Volume Delivered (U)"				: 5.0,
+	"Programmed Bolus Duration (h:mm:ss)": "--",				//Square part
+	"Difference (U)"										: "--",					//Calculated
+	
+	"BWZ Food Estimate (U)"							: 16.0,	//Food bolus
+	"BWZ Carb Input (grams)"						: 80,
+	"BWZ Carb Ratio (g/U)"							: 5.0,
+	
+	"BWZ Correction Estimate (U)"				: 1.1,	//Corr bolus
+	"BWZ BG Input (mmol/L)"							: 9.7,	//BGL
+	"BWZ Target High BG (mmol/L)"				: 5.6,
+	"BWZ Target Low BG (mmol/L)"				: 3.4,
+	
+	"BWZ Insulin Sensitivity (mmol/L/U)": 1.5,
+	"BWZ Active Insulin (U)"						: 0
+},{
+	"Index"															: 2,						//Index
+	"Time"															: "01:23:45",		//Time
+	
+	"BWZ Estimate (U)"									: 5.0, 						//Recommended Bolus
+	"Bolus Type"												: "Normal",			//Bolus Type
+	//"Bolus Volume Selected (U)"					: 5.0,
+	"Bolus Volume Delivered (U)"				: 5.0,
+	"Programmed Bolus Duration (h:mm:ss)": "--",				//Square part
+	"Difference (U)"										: "--",					//Calculated
+	
+	"BWZ Food Estimate (U)"							: 16.0,	//Food bolus
+	"BWZ Carb Input (grams)"						: 80,
+	"BWZ Carb Ratio (g/U)"							: 5.0,
+	
+	"BWZ Correction Estimate (U)"				: 1.1,	//Corr bolus
+	"BWZ BG Input (mmol/L)"							: 9.7,	//BGL
+	"BWZ Target High BG (mmol/L)"				: 5.6,
+	"BWZ Target Low BG (mmol/L)"				: 3.4,
+	
+	"BWZ Insulin Sensitivity (mmol/L/U)": 1.5,
+	"BWZ Active Insulin (U)"						: 0
+},{
+	"Index"															: 3,						//Index
+	"Time"															: "01:23:45",		//Time
+	
+	"BWZ Estimate (U)"									: 5.0, 						//Recommended Bolus
+	"Bolus Type"												: "Normal",			//Bolus Type
+	//"Bolus Volume Selected (U)"					: 5.0,
+	"Bolus Volume Delivered (U)"				: 5.0,
+	"Programmed Bolus Duration (h:mm:ss)": "--",				//Square part
+	"Difference (U)"										: "--",					//Calculated
+	
+	"BWZ Food Estimate (U)"							: 16.0,	//Food bolus
+	"BWZ Carb Input (grams)"						: 80,
+	"BWZ Carb Ratio (g/U)"							: 5.0,
+	
+	"BWZ Correction Estimate (U)"				: 1.1,	//Corr bolus
+	"BWZ BG Input (mmol/L)"							: 9.7,	//BGL
+	"BWZ Target High BG (mmol/L)"				: 5.6,
+	"BWZ Target Low BG (mmol/L)"				: 3.4,
+	
+	"BWZ Insulin Sensitivity (mmol/L/U)": 1.5,
+	"BWZ Active Insulin (U)"						: 0
+}];
+
 function getTheRightData(file){
 	var outputFile = file.substring(file.indexOf(";-------")+11, file.indexOf("-------;", file.indexOf(";-------")) - 3);
 	return outputFile.length > 20 ? outputFile : file;
@@ -20,9 +115,15 @@ exports.getData = function(fileName){
 	});
 }
 
+//Makes an object containing arrays for: graph, summary, donut, events
 exports.parseData = function(req){
 	var inputData = this.getData("betereData.csv");
-	var resultData = [];
+	var result = {
+		"graph" 	: [],
+		"summary"	: tableData,
+		"donut"		: donutData,
+		"events"	: bolusEventData
+	};
 	
 	var startDate = req.query.startDate || "0000/00/00 00:00:00";	//if undefined, use this as start date
 	var endDate = req.query.endDate || "9999/99/99 99:99:99";			//if undefined, use this as end date
@@ -51,12 +152,12 @@ exports.parseData = function(req){
 		if(Object.keys(resultObject).length != 0){	//if empty object, don't add the date				
 			if(date >= startDate && date <= endDate){
 				resultObject.date = date;
-				resultData.push(resultObject);
+				result.graph.push(resultObject);
 			}
 		}
 	}
 	
-	resultData.sort(function (a, b) {	//sort when done
+	result.graph.sort(function (a, b) {	//sort when done
 		if (a.date > b.date)
 			return 1;
 		else if (a.date < b.date)
@@ -64,5 +165,5 @@ exports.parseData = function(req){
 		else 
 			return 0;
 	});
-	return resultData;
+	return result;
 }
