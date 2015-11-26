@@ -25,6 +25,13 @@ var bolusEventRowNames = [
 ];
 
 $(document).ready(function(){			
+	$('.datepicker').datepicker({
+		autoclose: true,
+		format: "dd/mm/yyyy",
+		startDate: "10/11/2015",
+		endDate: "20/11/2015"
+	});
+	
 	$.get('/getGraphData',parameters,function(data){	
 		buildGraph(data.graph);
 		buildSummary(data.summary);

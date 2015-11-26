@@ -1,6 +1,8 @@
 extends ./layout.jade
 
 block head
+	link(rel='stylesheet', type="text/css", href='css/bootstrap-datepicker3.min.css')
+	script(type='text/javascript', src='js/bootstrap-datepicker.min.js')
 	script(type='text/javascript', src='js/amcharts/amcharts.js')
 	script(type='text/javascript', src='js/amcharts/serial.js')
 	script(type='text/javascript', src='js/amcharts/themes/light.js')
@@ -9,6 +11,7 @@ block head
 		
 block body
 	.bodycontainer
+		input.datepicker
 		.container
 			#chartdiv
 			#statisticsdiv
