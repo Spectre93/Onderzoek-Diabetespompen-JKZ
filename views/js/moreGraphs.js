@@ -17,7 +17,11 @@ Date.prototype.toString = function(){
 var startDate = new Date('2014/05/08 00:00:00 UTC+0000');
 var endDate = new Date('2015/09/06 00:00:00 UTC+0000');
 
-var parameters = {startDate: startDate.toString(),endDate: endDate.toString()};
+var parameters = {
+	startDate: startDate.toString(),
+	endDate: endDate.toString(),
+	weekly: true
+};
 
 $(document).ready(function() {
 	$.get( '/getGraphData',parameters, function(dataObject) {
@@ -27,6 +31,7 @@ $(document).ready(function() {
 			$(".chartcontainer").append( "<h3>Er is geen data over deze tijdsperiode.</h3>" );
 			return;
 		}
+		
 		var totalTime = endDate.getTime() - startDate.getTime();
 		var lastDate = startDate;	
 		var lastKnownBasal = undefined;
@@ -49,13 +54,14 @@ $(document).ready(function() {
 			if(data[i].basalRate != undefined) lastKnownBasal = data[i].basalRate;
 			for(var j = 0; j < resultGraphsData.length; j++){
 				if(data[i].date >= resultGraphsData[j].periodStartDate.toString() && data[i].date < resultGraphsData[j].periodEndDate.toString()){
-					if(resultGraphsData[j].firstKnownBasal == undefined) resultGraphsData[j].firstKnownBasal = lastKnownBasal;
+					if(resultGraphsData[j].firstKnownBasal == undefined) 
+						resultGraphsData[j].firstKnownBasal = lastKnownBasal;
 					resultGraphsData[j].lastKnownBasal = lastKnownBasal;
 					resultGraphsData[j].periodGraphData.push(data[i]);
 				}
 			}
 		}
-		
+
 		for(var j = 0; j < resultGraphsData.length; j++){
 			if(resultGraphsData[j].periodGraphData.length != 0){
 				if(resultGraphsData[j].firstKnownBasal != undefined){
@@ -71,7 +77,7 @@ $(document).ready(function() {
 				}else{
 					resultGraphsData[j].periodGraphData.push({date: resultGraphsData[j].periodEndDate})
 				}
-				
+
 				//make graphs for every chunk
 				if(resultGraphsData[j].periodGraphData.length > 2){
 					$(".chartcontainer").append( "<div id=\"chart_" + j + "\"></div>" );
