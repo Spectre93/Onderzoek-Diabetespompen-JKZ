@@ -3,29 +3,22 @@ extends layout
 block body
 	body
 		script(type='text/javascript', src='js/fillModal.js')
-		- var jsonArr = JSON.parse(readFile)
-		- var bolusRead = false
-		- var basalRead = false
-		- var glucoseRead = false
-		// script.
+		script(type='text/javascript', src='js/readings.js')
+		//- script(type='text/javascript', src='js/underscore-min.js')
+		- var jsonArr = JSON.parse(readFile);
+		- var bolusRead = false;
+		- var basalRead = false;
+		- var glucoseRead = false;
+		//- script.
 			var jsonString = JSON.parse(readFile)
 		p
 			| #{readFile}
 		#container.col-lg-12
 			.panel.panel-primary
 				.panel-heading Gegevens OmniPod
-				table.table.table-striped
-					thead
-						//-
-							tr
-							th ID
-							th Datum en tijdstip
-							th Categorie
-							th Waarde
-							th Omschrijving
-							th Commentaar
+				table#readingsTable.table.table-striped
 					tbody
-						each val, index in jsonArr.length ? jsonArr : ['Er zijn geen waardes']
+						//- each val, index in jsonArr.length ? jsonArr : ['Er zijn geen waardes']
 							tr
 								th= val.day
 								td= '00'
@@ -54,40 +47,105 @@ block body
 								td= '23'
 							tr(data-id= val.ids)
 								td= "Basaal"
+								- var lastHour;
+								- var result = 0.0;
 								- for (var i = 0; i < 24; i++) {
+									- lastHour = 0;
+									- result = 0.0;
+									each hour, index2 in val.basalHours
+										if hour == i
+											if lastHour == hour
+												- result += parseFloat(val.basalValues[index2])
+												td= result
+											else
+												td
+										- lastHour = hour
+								- }
+								// - for (var i = 0; i < 24; i++) {
 									- var seen = [];
 									- var brk = false;
+									- var result = 0;
 									each hour, index2 in val.basalHours
+										- brk = false;
 										- if (seen.indexOf(hour) === -1) {
 											- seen.push(hour);
 											if hour == i
 												td= val.basalValues[index2]
+												- brk = true;
 										- } else {
-											td= i
-											- break;
+											td
+											- brk = true;
 										- }
-									- if (brk) break;
-								- }
+										- if (brk) break;
+									- }
 							tr(data-id= val.ids)
 								td= "Glucose"
-								- for (var i = 0; i < 24; i++) {
-									each hour in val.glucoseHours
+								- var lastHour;
+								- var result;
+								- for (var i = 0; i < 24; ++i) {
+									- lastHour = 0;
+									- result = 0;
+									each hour, index2 in val.glucoseHours
 										if hour == i
-											if val.glucoseValues[i]
-												td= val.glucoseValues[i]
+											if lastHour == hour
+												- result += parseInt(val.glucoseValues[index2])
+												td= lastHour
+												td= hour
 											else
-												td= ""
+												// td= result
+										- lastHour = hour
 								- }
+								// - for (var i = 0; i < 24; i++) {
+									- var seen = [];
+									- var brk = false;
+									- var result = 0;
+									each hour, index2 in val.glucoseHours
+										// - brk = false;
+										- if (seen.indexOf(hour) === -1) {
+											- seen.push(hour);
+											if hour == i
+												td= val.glucoseValues[index2]
+												- brk = true;
+										- } else {
+											td
+											- brk = true;
+										- }
+										- if (brk) break;
+									- }
 							tr(data-id= val.ids)
 								td= "Bolus"
-								- for (var i = 0; i < 24; i++) {
-									each hour in val.bolusHours
+								- var lastHour;
+								- var result;
+								- for (var i = 0; i < 24; ++i) {
+									- lastHour = 0;
+									- result = 0;
+									each hour, index2 in val.bolusHours
 										if hour == i
-											if val.bolusValues[i]
-												td= val.bolusValues[i]
+											if lastHour == hour
+												- result += parseInt(val.bolusValues[index2])
+												td= lastHour
+												td= hour
 											else
-												td= ""
+												// td= result
+										- lastHour = hour
 								- }
+								// - for (var i = 0; i < 24; i++) {
+									- var seen = [];
+									- var brk = false;
+									- var result = 0;
+									each hour, index2 in val.bolusHours
+										// - brk = false;
+										- if (seen.indexOf(hour) === -1) {
+											- seen.push(hour);
+											if hour == i
+												td= val.bolusValues[index2]
+												- brk = true;
+										- } else {
+											td
+											- brk = true;
+										- }
+										- if (brk) break;
+									- }
 		#detailModal.modal.fade(role='dialog', aria-labelledby='detailModalLabel', aria-hidden='true')
 			.modal-dialog
 				.modal-content
