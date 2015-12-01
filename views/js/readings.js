@@ -20,11 +20,11 @@ $(function () {
 					indexBasal--;
 				if(cur.basalHours[indexBasal] == j){
 					var lastIndexBasal = indexBasal;
-					var value = parseFloat(cur.basalValues[indexBasal].replace(",","."));
+					var value = parseFloat(parseFloat(cur.basalValues[indexBasal].replace(",",".")).toFixed(1));
 					
 					for(var k = indexBasal-1; k >= 0; k--){
 						if(cur.basalHours[lastIndexBasal] == cur.basalHours[k]){
-							value += parseFloat(cur.basalValues[k].replace(",","."));
+							value += parseFloat(parseFloat(cur.basalValues[k].replace(",",".")).toFixed(1));
 							indexBasal--;
 						}else{
 							break;
@@ -47,11 +47,11 @@ $(function () {
 					indexGlucose--;
 				if(cur.glucoseHours[indexGlucose] == j){
 					var lastindexGlucose = indexGlucose;
-					var value = parseFloat(cur.glucoseValues[indexGlucose].replace(",","."));
+					var value = parseFloat(parseFloat(cur.glucoseValues[indexGlucose].replace(",",".")).toFixed(1));
 					
 					for(var k = indexGlucose-1; k >= 0; k--){
 						if(cur.glucoseHours[lastindexGlucose] == cur.glucoseHours[k]){
-							value += parseFloat(cur.glucoseValues[k].replace(",","."));
+							value += parseFloat(parseFloat(cur.glucoseValues[k].replace(",",".")).toFixed(1));
 							indexGlucose--;
 						}else{
 							break;
@@ -74,11 +74,11 @@ $(function () {
 					indexBolus--;
 				if(cur.bolusHours[indexBolus] == j){
 					var lastindexBolus = indexBolus;
-					var value = parseFloat(cur.bolusValues[indexBolus].replace(",","."));
+					var value = parseFloat(parseFloat(cur.bolusValues[indexBolus].replace(",",".")).toFixed(1));
 					
 					for(var k = indexBolus-1; k >= 0; k--){
 						if(cur.bolusHours[lastindexBolus] == cur.bolusHours[k]){
-							value += parseFloat(cur.bolusValues[k].replace(",","."));
+							value += parseFloat(parseFloat(cur.bolusValues[k].replace(",",".")).toFixed(1));
 							indexBolus--;
 						}else{
 							break;
