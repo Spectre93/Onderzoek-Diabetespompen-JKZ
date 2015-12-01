@@ -91,7 +91,7 @@ module.exports = (function() {
   	});
 
   	router.get('/getGraphData', function(req, res){
-  		res.send(helper.parseData(req));
+  		res.send(helper.prepareData(helper.parseCSV("betereData.csv").data ,req));
   	});
 
   	router.get('/dailyGraph', function(req, res){

@@ -1,5 +1,7 @@
-var parameters = { 	startDate: "2015/08/10 00:00:00",
-										endDate: "2015/08/11 00:00:00"};
+var parameters = {
+	startDate: "2015/08/10 00:00:00",
+	endDate: "2015/08/11 00:00:00"
+};
 
 var bolusEventRowNames = [
 	"Bolus Event",
@@ -116,7 +118,7 @@ function buildGraph(data){
         "valueField": "bolusVolumeDelivered",
 				"balloonText": "<b>[[value]]\b"
 		},{
-				"id": "bwzCarbInputG",
+				"id": "bwzCarbInput",
 				"title": "BWZ Carb Input (grams)",
 				"valueAxis": "v2",
         "bullet": "diamond",
@@ -124,7 +126,7 @@ function buildGraph(data){
 				"bulletSize": 12,
 				"labelText": "[[value]]g",
 				"showBalloon": false,
-        "valueField": "bwzCarbInputG"
+        "valueField": "bwzCarbInput"
 		},{
 				"id": "sensorBG",
 				"title": "Sensor Glucose (mmol/L)",
