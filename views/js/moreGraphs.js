@@ -152,14 +152,14 @@ function buildChart(id,data){
 				"columnWidth": 35,
         "valueField": "bolusVolumeDelivered"
 		},{
-				"id": "bwzCarbInputG",
+				"id": "bwzCarbInput",
 				"valueAxis": "v2",
         "bullet": "diamond",
 				"lineAlpha": 0,
 				"bulletSize": 8,
 				"showBalloon": false,
 				"labelText": "[[value]]g",
-        "valueField": "bwzCarbInputG"
+        "valueField": "bwzCarbInput"
 		},{
 				"id": "sensorBG",
 				"valueAxis": "v1",
@@ -173,6 +173,8 @@ function buildChart(id,data){
 				"valueAxis": "v3",
 				"bullet": "round",
 				"lineColor": "#000000",
+				"bullet": "custom",
+				"customBullet": "img/refresh.png",
 				"lineAlpha": 0,
 				"bulletSize": 8,
 				"showBalloon": false,
