@@ -11,14 +11,10 @@ block body
 		table#datatable.table.table-striped
 			thead#tableHeader
 				tr
-					each fieldName,index in Results.meta.fields
-						if(Blacklist.indexOf(index) == -1)
-							th= fieldName
+					each fieldName in Results.meta.fields
+						th= fieldName
 			tbody#tableBody
 				each entry in Results.data
-					- var i = 0;
 					tr
 						each field in entry
-							if(Blacklist.indexOf(i) == -1)
-								td= field
-							- i = i + 1
+							td= field
