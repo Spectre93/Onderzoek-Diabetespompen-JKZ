@@ -32,6 +32,9 @@ $(document).ready(function(){
 		format: "dd/mm/yyyy",
 		startDate: "10/11/2015",
 		endDate: "20/11/2015"
+		disableTouchKeyboard: true,
+		todayHighlight: true,
+		weekStart: 1
 	});
 	
 	$.get('/getGraphData',parameters,function(data){	
@@ -211,8 +214,8 @@ function buildDonut(data){
 		"titleField": "title",
 		"valueField": "value",
 		"labelRadius": 5,
-		"radius": "42%",
-		"innerRadius": "40%",
+		"radius": "38%",
+		"innerRadius": "36%",
 		"labelText": "[[title]]: [[value]]U",
 		"balloonText": "[[percents]]%"
 	});
