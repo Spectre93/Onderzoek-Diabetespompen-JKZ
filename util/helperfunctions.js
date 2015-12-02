@@ -226,7 +226,7 @@ exports.prepareData = function(inputData, req){
 	
 	var bgReadingTotal = 0;
 	var primeTotal = 0;
-	
+	var basalChanged = [];
 	for(var i = 0; i < combinedData.length; i++){
 		result.summary["Daily carbs (grams)"] += combinedData[i].bwzCarbInput || 0;
 		result.summary["Food bolus (U)"] += combinedData[i].bwzFoodEstimate || 0;
@@ -241,14 +241,27 @@ exports.prepareData = function(inputData, req){
 			result.summary["Fills"]++;
 			primeTotal += combinedData[i].manualPrimeVolumeDelivered;
 		}
+		
+		if(combinedData[i].basalRate != undefined){
+			basalChanged.push({
+				"timestamp": combinedData[i].timestamp,
+				"basalRate": combinedData[i].basalRate
+			});
+		}
 	}
 
-	result.summary["Readings avg. (mmol/L)"] = bgReadingTotal / result.summary["BG readings"];
+	result.summary["Readings avg. (mmol/L)"] = (bgReadingTotal / result.summary["BG readings"]).toFixed(1);
 	result.summary["Fills"] += " (" + (primeTotal || 0) + " U)";
 	
-	result.summary["Food bolus (U)"] = result.summary["Food bolus (U)"] || 23.3;						//TODO Remove hardcoded
-	result.summary["Correction bolus (U)"] = result.summary["Correction bolus (U)"] || 5.1; //TODO Remove hardcoded
-	result.summary["Basal (U)"] = result.summary["Basal (U)"] || 48;												//TODO Remove hardcoded
+	result.summary["Food bolus (U)"] = result.summary["Food bolus (U)"];
+	result.summary["Correction bolus (U)"] = result.summary["Correction bolus (U)"];
+	
+	for(var l = 0; l < basalChanged.length-1; l++){
+		var firstDate = new Date(basalChanged[l].timestamp + ' UTC+0000');
+		var secondDate = new Date(basalChanged[l+1].timestamp + ' UTC+0000');
+		result.summary["Basal (U)"] += (((secondDate.getTime() - firstDate.getTime())/ 3600000) * basalChanged[l].basalRate);
+	}
+	result.summary["Basal (U)"] = +result.summary["Basal (U)"].toFixed(1);
 	
 	result.summary["Total insulin (U)"] = result.summary["Food bolus (U)"] + result.summary["Correction bolus (U)"] + result.summary["Basal (U)"];
 
@@ -266,72 +279,36 @@ exports.prepareData = function(inputData, req){
   }];
 	
 	//Add event data
-	var bolusEventData = [{
-		"Index"															: 1,						//Index
-		"Time"															: "01:23",		//Time
-		
-		"BWZ Estimate (U)"									: 5.0, 						//Recommended Bolus
-		"Bolus Type"												: "Normal",			//Bolus Type
-		"Bolus Volume Delivered (U)"				: 5.0,
-		"Programmed Bolus Duration (h:mm:ss)": "--",				//Square part
-		"Difference (U)"										: "--",					//Calculated
-		
-		"BWZ Food Estimate (U)"							: 16.0,	//Food bolus
-		"BWZ Carb Input (grams)"						: 80,
-		"BWZ Carb Ratio (g/U)"							: 5.0,
-		
-		"BWZ Correction Estimate (U)"				: 1.1,	//Corr bolus
-		"BWZ BG Input (mmol/L)"							: 9.7,	//BGL
-		"BWZ Target High BG (mmol/L)"				: 5.6,
-		"BWZ Target Low BG (mmol/L)"				: 3.4,
-		
-		"BWZ Insulin Sensitivity (mmol/L/U)": 1.5,
-		"BWZ Active Insulin (U)"						: 0
-	},{
-		"Index"															: 2,						//Index
-		"Time"															: "01:23:45",		//Time
-		
-		"BWZ Estimate (U)"									: 5.0, 						//Recommended Bolus
-		"Bolus Type"												: "Normal",			//Bolus Type
-		"Bolus Volume Delivered (U)"				: 5.0,
-		"Programmed Bolus Duration (h:mm:ss)": "--",				//Square part
-		"Difference (U)"										: "--",					//Calculated
-		
-		"BWZ Food Estimate (U)"							: 16.0,	//Food bolus
-		"BWZ Carb Input (grams)"						: 80,
-		"BWZ Carb Ratio (g/U)"							: 5.0,
-		
-		"BWZ Correction Estimate (U)"				: 1.1,	//Corr bolus
-		"BWZ BG Input (mmol/L)"							: 9.7,	//BGL
-		"BWZ Target High BG (mmol/L)"				: 5.6,
-		"BWZ Target Low BG (mmol/L)"				: 3.4,
-		
-		"BWZ Insulin Sensitivity (mmol/L/U)": 1.5,
-		"BWZ Active Insulin (U)"						: 0
-	},{
-		"Index"															: 3,						//Index
-		"Time"															: "01:23:45",		//Time
-		
-		"BWZ Estimate (U)"									: 5.0, 						//Recommended Bolus
-		"Bolus Type"												: "Normal",			//Bolus Type
-		"Bolus Volume Delivered (U)"				: 5.0,
-		"Programmed Bolus Duration (h:mm:ss)": "--",				//Square part
-		"Difference (U)"										: "--",					//Calculated
-		
-		"BWZ Food Estimate (U)"							: 16.0,	//Food bolus
-		"BWZ Carb Input (grams)"						: 80,
-		"BWZ Carb Ratio (g/U)"							: 5.0,
-		
-		"BWZ Correction Estimate (U)"				: 1.1,	//Corr bolus
-		"BWZ BG Input (mmol/L)"							: 9.7,	//BGL
-		"BWZ Target High BG (mmol/L)"				: 5.6,
-		"BWZ Target Low BG (mmol/L)"				: 3.4,
-		
-		"BWZ Insulin Sensitivity (mmol/L/U)": 1.5,
-		"BWZ Active Insulin (U)"						: 0
-	}];
-
-	result.events = bolusEventData;
-	
+	result.events = [];
+	var eventIndex = 1;
+	for(var i = 0; i < combinedData.length; i++){
+		var cur = combinedData[i];
+		if(cur.hasOwnProperty("bolusVolumeEstimate")){
+			var res = {
+				"index": eventIndex,
+				"time": cur.time.substring(0,5),
+				
+				"bwzEstimate": cur.bolusVolumeEstimate || "--",
+				"bolusType": cur.bolusType || "--",
+				"bolVolDeliv": cur.bolusVolumeDelivered || cur.squareVolumeDelivered || "--",
+				"bolusDuration": cur.bolusDuration || "--",
+				"difference": +(cur.bolusVolumeEstimate - cur.bolusVolumeDelivered).toFixed(1) || "--",
+				
+				"bwzFoodEstimate": cur.bwzFoodEstimate || "--",
+				"bwzCarbInput": cur.bwzCarbInput || "--",
+				"bwzCarbRatio": cur.bwzCarbRatio || "--",
+				
+				"bwzCorrEst": cur.bwzCorrectionEstimate || "--",
+				"bwzBgInput": cur.bwzBgInput || "--",
+				"bwzHighTarget": cur.bwzHighTarget || "--",
+				"bwzLowTarget": cur.bwzLowTarget || "--",
+				
+				"bwzInsSens": cur.bwzInsulinSensitivity || "--",
+				"bwzActInsulin": cur.bwzActiveInsulin || "--"
+			};
+			result.events.push(res);
+			eventIndex++;
+		}
+	}	
 	return result;
 }
