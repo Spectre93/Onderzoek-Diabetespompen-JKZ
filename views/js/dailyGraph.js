@@ -31,7 +31,7 @@ $(document).ready(function(){
 		autoclose: true,
 		format: "dd/mm/yyyy",
 		startDate: "10/11/2015",
-		endDate: "20/11/2015"
+		endDate: "20/11/2015",
 		disableTouchKeyboard: true,
 		todayHighlight: true,
 		weekStart: 1
