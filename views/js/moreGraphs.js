@@ -1,18 +1,15 @@
-function addLeadingZeros(input){
-	if(input<10)
-		return "0" + input;
-	return input;
+Date.prototype.toString = function(date){
+	addLeadingZeros = function(input){
+		if(input<10)
+			return "0" + input;
+		return input;
+	}
+	
+	return this.getUTCFullYear() + "/" + addLeadingZeros(this.getUTCMonth()+1) + "/" + addLeadingZeros(this.getUTCDate()) + " " +
+					addLeadingZeros(this.getUTCHours()) + ":" + addLeadingZeros(this.getUTCMinutes()) + ":" + addLeadingZeros(this.getUTCSeconds());
 }
 
 AmCharts.useUTC = true;
-// Date.prototype.toString = function(){
-	// return AmCharts.formatDate(this.toUTCString(), "YYYY/MM/DD JJ:NN:SS");
-// }
-
-Date.prototype.toString = function(){
-	return this.getUTCFullYear() + "/" + addLeadingZeros(this.getUTCMonth()+1) + "/" + addLeadingZeros(this.getUTCDate()) + " " +
-				 addLeadingZeros(this.getUTCHours()) + ":" + addLeadingZeros(this.getUTCMinutes()) + ":" + addLeadingZeros(this.getUTCSeconds());
-}
 
 var startDate = new Date('2014/05/08 00:00:00 UTC+0000');
 var endDate = new Date('2015/09/06 00:00:00 UTC+0000');
