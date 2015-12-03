@@ -53,35 +53,30 @@ module.exports = (function() {
     });
 
     router.post('/upload', uploading.single('xml'), function(req, res) {
-        if (typeof req.file === 'undefined') {
-            req.flash('error', 'Kies een bestand om te uploaden');
-            res.redirect('/fileupload');
-        }
+        if (req.file.mimetype === "text/xml") {
+            req.session.filename = req.file.originalname;
 
-        req.session.filename = req.file.originalname;
+            var json;
 
-        var json;
+            try {
+                var fileData = fs.readFileSync(req.file.originalname, 'ascii');
 
-        try {
-            var fileData = fs.readFileSync(req.file.originalname, 'ascii');
+                var parser = new xml2js.Parser();
+                parser.parseString(fileData.substring(0, fileData.length), function(err, result) {
+                    json = JSON.parse(JSON.stringify(result, null, 3));
+                });
 
-            var parser = new xml2js.Parser();
-            parser.parseString(fileData.substring(0, fileData.length), function(err, result) {
-                json = JSON.parse(JSON.stringify(result, null, 3));
-            });
+                console.log("File '" + req.file.path + req.file.filename + "' was successfully read. Encoding " + req.file.encoding + " en MIME type " + req.file.mimetype + ". Size is " + json.RECORDS.RECORD.length + " \n");
+            } catch (ex) {
+                console.log("Unable to read file '" + req.file.path + req.file.filename + "'.");
+                console.log(ex);
+            }
 
-            console.log("File '" + req.file.path + req.file.filename + "' was successfully read. Encoding " + req.file.encoding + " en MIME type " + req.file.mimetype + ". Size is " + json.RECORDS.RECORD.length + " \n");
-        } catch (ex) {
-            console.log("Unable to read file '" + req.file.path + req.file.filename + "'.");
-            console.log(ex);
-        }
-
-        req.session.file = json.RECORDS.RECORD;
-
-        if (req.file.mimetype === "text/xml")
+            req.session.file = json.RECORDS.RECORD;
             res.redirect('/readings');
-        else
+        } else { 
             res.redirect('/dailyGraph');
+        }
     });
 
     router.get('/table', function (req, res) {
@@ -124,7 +119,7 @@ module.exports = (function() {
 
         for (var i = json.length - 1; i >= 0; i--) {
             var current = json[i].ROW[0].$;
-            
+
             if (ids.indexOf(current.id+"") === -1) {
                 continue;
             }

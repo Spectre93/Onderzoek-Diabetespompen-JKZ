@@ -11,7 +11,7 @@ $(function () {
 			$('#readingsTable > tbody:last-child').append('<tr><th>' + cur.day + '</th><td>00</td><td>01</td><td>02</td><td>03</td><td>04</td><td>05</td><td>06</td><td>07</td><td>08</td><td>09</td><td>10</td><td>11</td><td>12</td><td>13</td><td>14</td><td>15</td><td>16</td><td>17</td><td>18</td><td>19</td><td>20</td><td>21</td><td>22</td><td>23</td></tr>');
 
 			// Calculate values and locations here
-			var result = '<tr bgcolor="#ebfaeb"><td>Basaal</td>';
+			var result = '<tr style="background-color:#ebfaeb"><td>Basaal</td>';
 
 			var indexBasal = cur.basalHours.length-1;
 			for(var j = 0; j < 24; j++){
@@ -44,7 +44,7 @@ $(function () {
 			result += '</tr>';
 
 			// Calculate values and locations here
-			result += '<tr bgcolor="#ffffcc"><td>Glucose</td>';
+			result += '<tr style="background-color:#ffffcc"><td>Glucose</td>';
 
 			var indexGlucose = cur.glucoseHours.length-1;
 			for(var j = 0; j < 24; j++){
@@ -76,7 +76,7 @@ $(function () {
 			result += '</tr>';
 
 			// Calculate values and locations here
-			result += '<tr bgcolor="#e9fbd0"><td>Bolus</td>';
+			result += '<tr style="background-color:#e9fbd0"><td>Bolus</td>';
 
 			var indexBolus = cur.bolusHours.length-1;
 			for(var j = 0; j < 24; j++){
