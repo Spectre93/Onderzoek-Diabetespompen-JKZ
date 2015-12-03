@@ -52,7 +52,7 @@ module.exports = (function() {
         });
     });
 
-    router.post('/upload', uploading.single('xml'), function(req, res) {
+    router.post('/upload', uploading.single('inputFile'), function(req, res) {
         if (req.file.mimetype === "text/xml") {
             req.session.filename = req.file.originalname;
 
