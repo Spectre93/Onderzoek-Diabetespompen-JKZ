@@ -4,26 +4,26 @@ var parameters = {
 };
 
 var bolusEventRowNames = [
-	"Bolus Event",
+	"Bolus event",
 	"Time",
 	
-	"Recommended Bolus(U)",
-	"Bolus Type",
-	"Delivered Bolus(U)",
-	"+Square Portion(U, h:mm)",
+	"Recommended bolus (U)",
+	"Bolus type",
+	"Delivered bolus (U)",
+	"+Square portion (U, h:mm)",
 	"Difference (U)",
 	
-	"Food Bolus(U)",
-	"Carbs(g)",
-	"Carb Ratio(g/U)",
+	"Food bolus (U)",
+	"Carbs (g)",
+	"Carb ratio (g/U)",
 	
-	"Correction Bolus(U)",
-	"BG(mmol/L)",
-	"BG Target High",
-	"BG Target Low",
+	"Correction bolus (U)",
+	"BG (mmol/L)",
+	"BG high target",
+	"BG low target",
 	
-	"Insulin Sens.",
-	"Active Insulin"
+	"Insulin sensitivity",
+	"Active insulin"
 ];
 
 $(document).ready(function(){			
