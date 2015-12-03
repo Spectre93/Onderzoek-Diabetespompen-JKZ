@@ -27,20 +27,15 @@ html(lang='en')
 						span.icon-bar
 				#navbar-main.navbar-collapse.collapse
 					ul.nav.navbar-nav
-						li
-							a(href='/table') Table
-						li
-							a(href='/dailyGraph') DailyGraph
-						li
-							a(href='/moreGraphs') MoreGraphs
 						if (readFile || items)
+							li
+								a(href='/moreGraphs') Weekoverzicht
 							li
 								a(href='/graph') Grafiek
 							li
-								a(href='/readings') Waarden
-						else
-							li
-								a(href='/fileupload') Uploaden
+								a(href='/readings') Tabel
+						li
+							a(href='/fileupload') Uploaden
 						if !user
 							li
 								a(href='/register') Registreren

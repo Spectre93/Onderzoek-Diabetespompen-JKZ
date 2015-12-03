@@ -2,6 +2,11 @@ extends layout
 
 block body
 	body
+		if readFile
+			row
+				.alert.alert-dismissable.alert-info
+					button.close(data-dismiss='alert', type='button') &times;
+					p Er is al een bestand geüpload. Het uploaden van een nieuw bestand overschrijft het oude bestand.
 		#container.col-lg-12
 			form#uploadForm(enctype='multipart/form-data', action='/upload', method='post')
 				.form-group
