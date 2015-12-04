@@ -1,0 +1,19 @@
+tbody>tr:nth-child(4n+1)>td:nth-child(1){
+	font-weight: bold;
+}
+
+tbody>tr:nth-child(4n+2){
+	background-color: #ebfaeb;
+}
+
+tbody>tr:nth-child(4n+3){
+	background-color: #ffffcc;
+}
+
+tbody>tr:nth-child(4n+4){
+	background-color: #e9fbd0;
+}
+
+tbody>tr:nth-child(4n+4){
+	border-bottom: thin solid #999;
+}

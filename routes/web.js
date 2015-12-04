@@ -240,14 +240,6 @@ module.exports = (function() {
       res.send(helper.getDailyGraphData(req.session.file, req));
     });
 
-    /*router.get('/dailyGraph', function(req, res){
-      res.render('dailyGraph', {
-        title: 'Grafiek Paradigm Veo',
-        header: 'Grafiek',
-        readFile: req.session.file
-      });
-    });*/
-
     router.get('/moregraphs', function(req, res){
         res.render('moreGraphs', {
         title: 'Meer grafieken',
@@ -517,155 +509,203 @@ module.exports = (function() {
     // GET table page //
     ////////////////////
     router.get('/readings', fileActive, function(req, res) {
-        var json = req.session.file;
-        var curDate, curCat, curVal, curDesc, curCom, curHour, curDay;
-        var resultFile = [];
+		if (req.session.filetype === 'text/xml') {
+			var json = req.session.file;
+			var curDate, curCat, curVal, curDesc, curCom, curHour, curDay;
+			var resultFile = [];
 
-        json.sort(function(a, b) {
-            return (b.ROW[0].$.DATEEVENT.replace(",", ".") - a.ROW[0].$.DATEEVENT.replace(",", "."));
-        });
+			json.sort(function(a, b) {
+				return (b.ROW[0].$.DATEEVENT.replace(",", ".") - a.ROW[0].$.DATEEVENT.replace(",", "."));
+			});
 
-        for (var n = 0; n < json.length; n++) {
-            var current = json[n].ROW[0].$;
-            var unixTime = (current.DATEEVENT.replace(",", ".") - 25569) * 86400;
+			for (var n = 0; n < json.length; n++) {
+				var current = json[n].ROW[0].$;
+				var unixTime = (current.DATEEVENT.replace(",", ".") - 25569) * 86400;
 
-            current.id = json[n].ROW[0].$.id = n + 1;
+				current.id = json[n].ROW[0].$.id = n + 1;
 
-            // Read the dates and put them in an array
-            var date = new Date(unixTime * 1000);
+				// Read the dates and put them in an array
+				var date = new Date(unixTime * 1000);
 
-            var day = date.getUTCDate();
-            var month = date.getUTCMonth() + 1;
-            var year = date.getUTCFullYear();
-            var hours = "0" + date.getUTCHours();
-            var minutes = "0" + date.getUTCMinutes();
-            var seconds = "0" + date.getUTCSeconds();
+				var day = date.getUTCDate();
+				var month = date.getUTCMonth() + 1;
+				var year = date.getUTCFullYear();
+				var hours = "0" + date.getUTCHours();
+				var minutes = "0" + date.getUTCMinutes();
+				var seconds = "0" + date.getUTCSeconds();
 
-            curDate = day + "-" + month + "-" + year + " " + hours.substr(-2) + ":" + minutes.substr(-2) + ":" + seconds.substr(-2);
-            curHour = hours.substr(-2);
-            curDay = day + "-" + month + "-" + year;
+				curDate = day + "-" + month + "-" + year + " " + hours.substr(-2) + ":" + minutes.substr(-2) + ":" + seconds.substr(-2);
+				curHour = hours.substr(-2);
+				curDay = day + "-" + month + "-" + year;
 
-            if (current.EVENTTYPE === "0") {
-                curCat = "Beweging";
-                curDesc = current.C0 + "\n" + current.C1 + "\n" + current.C2;
-            } else if (current.EVENTTYPE === "1") {
-                curCat = "Glucosemeting";
-                curVal = parseFloat(current.I1 / 18).toFixed(1);
-                curDesc = current.C0;
-            } else if (current.EVENTTYPE === "2") {
-                curCat = "Basaal";
-                curVal = current.D0;
-                curDesc = current.C1;
-            } else if (current.EVENTTYPE === "3") {
-                curCat = "Bolus";
-                curVal = current.D0;
-                curDesc = current.C0 + "\n" + current.C1 + "\n" + current.C2;
-            } else if (current.EVENTTYPE === "4") {
-                curCat = "Labresultaten";
-                curVal = current.C1;
-                curDesc = current.C0 + "\n" + current.C1 + "\n" + current.C2 + "\n" + current.C3;
-            } else if (current.EVENTTYPE === "5") { // Descriptions need to be fixed here: re-read CoPilot import manual
-                curCat = "Maaltijd";
-                curVal = current.D1;
-            } else if (current.EVENTTYPE === "6") {
-                curCat = "Medisch onderzoek";
-                curDesc = current.C0 + "\n" + current.C1;
-            } else if (current.EVENTTYPE === "7") {
-                curCat = "Medicijnen";
-                curDesc = current.C0 + "\n" + current.C1 + "\n" + current.C2;
-            } else if (current.EVENTTYPE === "8") {
-                curCat = "Notities";
-                curDesc = current.C0 + "\n" + current.C1;
-            } else if (current.EVENTTYPE === "9") {
-                curCat = "Gezondheid";
-                curDesc = current.C0;
-            } else if (current.EVENTTYPE === "10") {
-                curCat = "Keton";
-                curVal = current.D0;
-                curDesc = current.C0 + "\n" + current.C1 + "\n" + current.C2;
-            } else if (current.EVENTTYPE === "15") {
-                curCat = "Alarm";
-                curVal = current.I0;
-            } else if (current.EVENTTYPE === "16") {
-                curCat = "Generiek";
-            } else {
-                curCat = "";
-                curDesc = "";
-            }
+				if (current.EVENTTYPE === "0") {
+					curCat = "Beweging";
+					curDesc = current.C0 + "\n" + current.C1 + "\n" + current.C2;
+				} else if (current.EVENTTYPE === "1") {
+					curCat = "Glucosemeting";
+					curVal = parseFloat(current.I1 / 18).toFixed(1);
+					curDesc = current.C0;
+				} else if (current.EVENTTYPE === "2") {
+					curCat = "Basaal";
+					curVal = current.D0;
+					curDesc = current.C1;
+				} else if (current.EVENTTYPE === "3") {
+					curCat = "Bolus";
+					curVal = current.D0;
+					curDesc = current.C0 + "\n" + current.C1 + "\n" + current.C2;
+				} else if (current.EVENTTYPE === "4") {
+					curCat = "Labresultaten";
+					curVal = current.C1;
+					curDesc = current.C0 + "\n" + current.C1 + "\n" + current.C2 + "\n" + current.C3;
+				} else if (current.EVENTTYPE === "5") { // Descriptions need to be fixed here: re-read CoPilot import manual
+					curCat = "Maaltijd";
+					curVal = current.D1;
+				} else if (current.EVENTTYPE === "6") {
+					curCat = "Medisch onderzoek";
+					curDesc = current.C0 + "\n" + current.C1;
+				} else if (current.EVENTTYPE === "7") {
+					curCat = "Medicijnen";
+					curDesc = current.C0 + "\n" + current.C1 + "\n" + current.C2;
+				} else if (current.EVENTTYPE === "8") {
+					curCat = "Notities";
+					curDesc = current.C0 + "\n" + current.C1;
+				} else if (current.EVENTTYPE === "9") {
+					curCat = "Gezondheid";
+					curDesc = current.C0;
+				} else if (current.EVENTTYPE === "10") {
+					curCat = "Keton";
+					curVal = current.D0;
+					curDesc = current.C0 + "\n" + current.C1 + "\n" + current.C2;
+				} else if (current.EVENTTYPE === "15") {
+					curCat = "Alarm";
+					curVal = current.I0;
+				} else if (current.EVENTTYPE === "16") {
+					curCat = "Generiek";
+				} else {
+					curCat = "";
+					curDesc = "";
+				}
 
-            if (typeof curDesc === 'undefined')
-                curDesc = "";
+				if (typeof curDesc === 'undefined')
+					curDesc = "";
 
-            // Read comments and push them to an array
-            if (typeof current.COMMENT != 'undefined')
-                curCom = current.COMMENT.replace(/; /g, "\n").replace(".", ". ");
-            else
-                curCom = "";
+				// Read comments and push them to an array
+				if (typeof current.COMMENT != 'undefined')
+					curCom = current.COMMENT.replace(/; /g, "\n").replace(".", ". ");
+				else
+					curCom = "";
 
-            if (typeof curVal === 'undefined')
-                curVal = "";
+				if (typeof curVal === 'undefined')
+					curVal = "";
 
-            if (curCat === "Bolus") {
-                resultFile.push({
-                    id: current.id,
-                    date: curDate,
-                    day: curDay,
-                    bolusHour: curHour,
-                    bolusValue: curVal,
-                    category: curCat,
-                    description: curDesc,
-                    comment: curCom
-                });
-            } else if (curCat === "Basaal") {
-                resultFile.push({
-                    id: current.id,
-                    date: curDate,
-                    day: curDay,
-                    basalHour: curHour,
-                    basalValue: curVal,
-                    category: curCat,
-                    description: curDesc,
-                    comment: curCom
-                });
-            } else if (curCat === "Glucosemeting") {
-                resultFile.push({
-                    id: current.id,
-                    date: curDate,
-                    day: curDay,
-                    glucoseHour: curHour,
-                    glucoseValue: curVal,
-                    category: curCat,
-                    description: curDesc,
-                    comment: curCom
-                });
-            }
-        }
+				if (curCat === "Bolus") {
+					resultFile.push({
+						id: current.id,
+						date: curDate,
+						day: curDay,
+						bolusHour: curHour,
+						bolusValue: curVal,
+						category: curCat,
+						description: curDesc,
+						comment: curCom
+					});
+				} else if (curCat === "Basaal") {
+					resultFile.push({
+						id: current.id,
+						date: curDate,
+						day: curDay,
+						basalHour: curHour,
+						basalValue: curVal,
+						category: curCat,
+						description: curDesc,
+						comment: curCom
+					});
+				} else if (curCat === "Glucosemeting") {
+					resultFile.push({
+						id: current.id,
+						date: curDate,
+						day: curDay,
+						glucoseHour: curHour,
+						glucoseValue: curVal,
+						category: curCat,
+						description: curDesc,
+						comment: curCom
+					});
+				}
+			}
 
-        var resultObj = us.chain(resultFile)
-        .groupBy('day')
-        .map(function(elem, hour) {
-            return {
-                "ids": us.pluck(elem, 'id'),
-                "basalValues": us.pluck(elem, 'basalValue'),
-                "bolusValues": us.pluck(elem, 'bolusValue'),
-                "glucoseValues": us.pluck(elem, 'glucoseValue'),
-                "categories": us.pluck(elem, 'category'),
-                "descriptions": us.pluck(elem, 'description'),
-                "comments": us.pluck(elem, 'comment'),
-                "date": us.pluck(elem, 'date'),
-                "day": us.pluck(elem, 'day')[0],
-                "basalHours": us.pluck(elem, 'basalHour'),
-                "bolusHours": us.pluck(elem, 'bolusHour'),
-                "glucoseHours": us.pluck(elem, 'glucoseHour')
-            };
-        })
-        .value();
+			var resultObj = us.chain(resultFile)
+			.groupBy('day')
+			.map(function(elem, hour) {
+				return {
+					"ids": us.pluck(elem, 'id'),
+					"basalValues": us.pluck(elem, 'basalValue'),
+					"bolusValues": us.pluck(elem, 'bolusValue'),
+					"glucoseValues": us.pluck(elem, 'glucoseValue'),
+					"categories": us.pluck(elem, 'category'),
+					"descriptions": us.pluck(elem, 'description'),
+					"comments": us.pluck(elem, 'comment'),
+					"date": us.pluck(elem, 'date'),
+					"day": us.pluck(elem, 'day')[0],
+					"basalHours": us.pluck(elem, 'basalHour'),
+					"bolusHours": us.pluck(elem, 'bolusHour'),
+					"glucoseHours": us.pluck(elem, 'glucoseHour')
+				};
+			})
+			.value();
 
-        res.render('readings', {
-            title: 'Tabel OmniPod',
-            header: 'Tabel',
-            readFile: JSON.stringify(resultObj)
-        });
+			res.render('readings', {
+				title: 'Tabel OmniPod',
+				header: 'Tabel',
+				readFile: JSON.stringify(resultObj)
+			});
+		}else if(req.session.filetype === 'application/vnd.ms-excel'){
+			var file = req.session.file;
+			var result = {};
+			//for(var i = 0; i < file.length; i++){
+			for(var i = file.length-1; i >= 0; i--){
+				var cur = result[file[i].date];
+				if(cur == undefined){
+					cur = {
+						header: [file[i].date],
+						basalValues: ['Basal'],
+						glucoseValues: ['Glucose'],
+						bolusValues: ['Bolus']
+					};
+					
+					for(var j = 0; j < 24; j++){
+						if(j<10)
+							cur.header.push('0' + j);
+						else 
+							cur.header.push('' + j);
+						cur.basalValues.push('');
+						cur.glucoseValues.push('');
+						cur.bolusValues.push('');
+					}
+					result[file[i].date] = cur;
+					console.log(cur);
+				}
+
+				if(file[i].basalRate != undefined){
+					result[file[i].date].basalValues[+file[i].time.substring(0,2)+1] = file[i].basalRate;
+				}
+				
+				if(file[i].bwzBgInput != undefined){
+					result[file[i].date].glucoseValues[+file[i].time.substring(0,2)+1] = file[i].bwzBgInput;
+				}
+				
+				if(file[i].bolusVolumeDelivered != undefined){
+					result[file[i].date].bolusValues[+file[i].time.substring(0,2)+1] = file[i].bolusVolumeDelivered;
+				}
+			}
+			
+			res.render('table', {
+				title: 'Tabel Paradigm Veo',
+				header: 'Tabel',
+				readFile: req.session.file,
+				data: result
+			});
+		}
     });
 
     ////////////////////

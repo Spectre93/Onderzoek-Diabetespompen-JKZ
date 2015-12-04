@@ -1,20 +1,19 @@
 extends ./layout.jade
 
 block head
-	script(type='text/javascript', src='js/table.js')
 	script(type='text/javascript', src='js/dataTables/jquery.dataTables.min.js')
 	script(type='text/javascript', src='js/dataTables/dataTables.bootstrap.min.js')
 	link(rel='stylesheet', type="text/css", href='css/dataTables/dataTables.bootstrap.min.css')
+	link(rel='stylesheet', type="text/css", href='css/table.css')
 		
 block body
-	.container
-		table#datatable.table.table-striped
-			thead#tableHeader
-				tr
-					each fieldName in Results.meta.fields
-						th= fieldName
-			tbody#tableBody
-				each entry in Results.data
-					tr
-						each field in entry
-							td= field
+	#container.col-lg-12
+		.panel.panel-primary
+			.panel-heading Gegevens Paradigm Veo
+			table#datatable.table
+				tbody#tableHeader
+					each date in data
+						each row in date
+							tr
+								each val in row
+									td= val
