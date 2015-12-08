@@ -103,8 +103,8 @@ exports.getDailyGraphData = function(combinedData, req){
 	result.summary["Readings avg. (mmol/L)"] = (bgReadingTotal / result.summary["BG readings"] || 0).toFixed(1);
 	result.summary["Fills"] += " (" + (primeTotal || 0) + " U)";
 	
-	result.summary["Food bolus (U)"] = result.summary["Food bolus (U)"];
-	result.summary["Correction bolus (U)"] = result.summary["Correction bolus (U)"];
+	result.summary["Food bolus (U)"] = +result.summary["Food bolus (U)"].toFixed(1);
+	result.summary["Correction bolus (U)"] = +result.summary["Correction bolus (U)"].toFixed(1);
 	
 	for(var l = 0; l < basalChanged.length-1; l++){
 		var firstDate = new Date(basalChanged[l].timestamp + ' UTC+0000');
@@ -113,7 +113,7 @@ exports.getDailyGraphData = function(combinedData, req){
 	}
 	result.summary["Basal (U)"] = +result.summary["Basal (U)"].toFixed(1);
 	
-	result.summary["Total insulin (U)"] = result.summary["Food bolus (U)"] + result.summary["Correction bolus (U)"] + result.summary["Basal (U)"];
+	result.summary["Total insulin (U)"] = +(result.summary["Food bolus (U)"] + result.summary["Correction bolus (U)"] + result.summary["Basal (U)"]).toFixed(1);
 
 	//Add donut data
 	result.donut = [{
@@ -125,7 +125,7 @@ exports.getDailyGraphData = function(combinedData, req){
   },{
     "title": "Food",
     "value": result.summary["Food bolus (U)"],
-		"color": "#d38df1"
+	"color": "#d38df1"
   }];
 	
 	//Add event data
