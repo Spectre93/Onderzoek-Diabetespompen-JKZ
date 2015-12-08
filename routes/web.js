@@ -6,14 +6,15 @@ var express = require("express"),
     us = require('underscore'),
     multer = require('multer'),
     helper = require('../util/helperfunctions.js'),
-    baby = require('babyparse'); //,
+    baby = require('babyparse'),
+    mkdirp = require('mkdirp'); //,
 //test = require('./test')();
 
 var uploading = multer({
     dest: './public/uploads/'
 });
 
-module.exports = (function() {
+module.exports = function(passport) {
     "use strict";
 
     router.get('/*', function(req, res, next) {
@@ -36,29 +37,95 @@ module.exports = (function() {
         res.end();
     });
 
-    router.get('/', function(req, res) {
-        res.render('index', {
-            title: "Home",
-            header: "Welkom!",
+    router.get('/login', function(req, res) {
+        res.render('login', {
+            title: "Login",
+            header: "Inloggen",
+            message: req.flash(),
+            user: req.user
+        });
+    });
+
+    // process the login form
+    router.post('/login', passport.authenticate('login', {
+        successRedirect : '/profile', // redirect to the secure profile section
+        failureRedirect : '/login', // redirect back to the signup page if there is an error
+        failureFlash : true // allow flash messages
+    }));
+
+    router.get('/signup', function(req, res) {
+        res.render('signup', {
+            title: "Inschrijven",
+            header: "Registreren",
+            message: req.flash(),
+            user: req.user,
             readFile: req.session.file
         });
     });
 
-    router.get('/fileupload', function(req, res) {
+    // process the signup form
+    router.post('/signup', passport.authenticate('signup', {
+        successRedirect : '/profile', // redirect to the secure profile section
+        failureRedirect : '/signup', // redirect back to the signup page if there is an error
+        failureFlash : true // allow flash messages
+    }));
+
+    router.get('/profile', isLoggedIn, function(req, res) {
+        res.render('profile', {
+            title: "Profiel",
+            header: "Profiel van " + req.user.firstname + " " + req.user.lastname,
+            user : req.user, // get the user out of session and pass to template
+            readFile: req.session.file
+        });
+    });
+    
+    router.get('/logout', function(req, res) {
+        req.logout();
+        res.redirect('/');
+    });
+
+    router.get('/', function(req, res) {
+        res.render('index', {
+            title: "Home",
+            header: "Welkom!",
+            readFile: req.session.file,
+            message: req.flash(),
+            user: req.user
+        });
+    });
+
+    router.get('/fileupload', isLoggedIn, function(req, res) {
         res.render("file-upload", {
             title: "Upload bestand",
             header: "Bestand uploaden",
             readFile: req.session.file,
-            messages: req.flash()
+            messages: req.flash(),
+            user: req.user
         });
     });
 
     router.post('/upload', uploading.single('inputFile'), function(req, res) {
+        var userModel = req.db.model("User");
+
         req.session.filename = req.file.originalname;
         req.session.filetype = req.file.mimetype;
 
+        mkdirp(req.file.destination + '\\' + req.user._id, function(err) {
+            if (err) console.log(err);
+            else  console.log("pow!");
+        });
+
+        userModel.update({ _id: req.user._id }, { $push: { uploadedFiles: req.file.originalname }}, function(err) {
+            if (err)
+                console.log("Filename could not be added to uploadedFiles.");
+        });
+
         if (req.file.mimetype === "text/xml") {
             var json;
+
+            fs.rename(req.file.path, req.file.destination + '\\' + req.user._id + '\\' + Date.now() + '.xml', function(err) {
+                if ( err ) console.log('ERROR: ' + err);
+            });
 
             try {
                 var fileData = fs.readFileSync(req.file.originalname, 'ascii');
@@ -76,14 +143,18 @@ module.exports = (function() {
 
             req.session.file = json.RECORDS.RECORD;
             res.redirect('/readings');
-        }else{
+        } else if (req.file.mimetype === "application/vnd.ms-excel") {
 			//##### Paradigm Veo #####				
 		
 			var path = req.file.path;
 			//Read the file and cut away the bits we don't need so it can be parsed
 			var file = fs.readFileSync(path).toString();
-			file = file.substring(file.indexOf(";-------")+11, file.indexOf("-------;", file.indexOf(";-------"))-3);;
+			file = file.substring(file.indexOf(";-------")+11, file.indexOf("-------;", file.indexOf(";-------"))-3);
 			
+            fs.rename(req.file.path, req.file.destination + '\\' + req.user._id + '\\' + Date.now() + '.csv', function(err) {
+                if ( err ) console.log('ERROR: ' + err);
+            });
+
 			//Parse the file, returns JSON-object
 			var parseResults = baby.parse(file,{	
 				header: true,
@@ -95,19 +166,19 @@ module.exports = (function() {
 			
 			//Sort the results.data array
 			parseResults.data = parseResults.data.sort(function (a, b) {
-				if (a["Date"] > b["Date"])
+				if (a.Date > b.Date)
 					return 1;
-				else if (a["Date"] < b["Date"])
+				else if (a.Date < b.Date)
 					return -1;
 				
 				//When the dates are equal, check the times
-				if(a["Time"] > b["Time"])
+				if(a.Time > b.Time)
 					return 1;
-				else if(a["Time"] < b["Time"])
+				else if(a.Time < b.Time)
 					return -1;
 				
 				//If the times are equal too, check for any of these
-				if(a["Suspend"] || a["BWZ Estimate (U)"] || a["Temp Basal Type"])
+				if(a.Suspend || a["BWZ Estimate (U)"] || a["Temp Basal Type"])
 					return -1;
 				else 
 					return 1;
@@ -119,23 +190,23 @@ module.exports = (function() {
 				var currentEntry = parseResults.data[i];
 				var resultItem = {};
 						
-				resultItem.date = currentEntry["Date"];
-				resultItem.time = currentEntry["Time"];
+				resultItem.date = currentEntry.Date;
+				resultItem.time = currentEntry.Time;
 				resultItem.timestamp = resultItem.date + " " + resultItem.time;
 				
 				//If there's a reading, add it to the new item
 				var bgReading = currentEntry["BG Reading (mmol/L)"];
-				if(bgReading != "")
+				if(bgReading !== "")
 					resultItem.bgReading = bgReading;
 				
 				//If there's basal rate change, add it to the new item
 				var basalRate = currentEntry["Basal Rate (U/h)"];
-				if(basalRate != "")				
+				if(basalRate !== "")				
 					resultItem.basalRate = basalRate;
 
 				//If there's a bolus entry, add it to the new item
 				var bolusType = currentEntry["Bolus Type"];
-				if(bolusType != ""){
+				if(bolusType !== ""){
 					var bolusVolumeSelected = currentEntry["Bolus Volume Selected (U)"];
 					var bolusVolumeDelivered = currentEntry["Bolus Volume Delivered (U)"];
 					
@@ -155,7 +226,7 @@ module.exports = (function() {
 						for(var j = 0; j < 10; j++){
 							if(i + j < parseResults.data.length){
 								var bolusDuration = parseResults.data[i+j]["Programmed Bolus Duration (h:mm:ss)"];
-								if(bolusDuration != ""){
+								if(bolusDuration !== ""){
 									//And add that to the item as well
 									resultItem.squareVolumeSelected = parseResults.data[i+j]["Bolus Volume Selected (U)"];
 									resultItem.squareVolumeDelivered = parseResults.data[i+j]["Bolus Volume Delivered (U)"];
@@ -168,9 +239,9 @@ module.exports = (function() {
 				}
 				
 				//If there's a rewind, note it as '1' in the item
-				var rewind = currentEntry["Rewind"];
-				if(rewind != ""){
-					resultItem.rewind	= 1;
+				var rewind = currentEntry.Rewind;
+				if(rewind !== ""){
+					resultItem.rewind = 1;
 					
 					//Look for the Primes it came with
 					for(var j = 0; j < 10; j++){
@@ -198,13 +269,13 @@ module.exports = (function() {
 				}
 				
 				//Alarms are added too
-				var alarm = currentEntry["Alarm"];
-				if(alarm != "")
+				var alarm = currentEntry.Alarm;
+				if(alarm !== "")
 					resultItem.alarm = alarm;
 					
 				//If there's a BWZ entry, there will be more. Add them all.
 				var bolusVolumeEstimate = currentEntry["BWZ Estimate (U)"];
-				if(bolusVolumeEstimate != ""){
+				if(bolusVolumeEstimate !== ""){
 					resultItem.bolusVolumeEstimate = bolusVolumeEstimate;
 					resultItem.bwzHighTarget = currentEntry["BWZ Target High BG (mmol/L)"];
 					resultItem.bwzLowTarget = currentEntry["BWZ Target Low BG (mmol/L)"];
@@ -223,7 +294,7 @@ module.exports = (function() {
 			
 				//Add the sensor readings
 				var sensorBG = currentEntry["Sensor Glucose (mmol/L)"];
-				if(sensorBG != "")
+				if(sensorBG !== "")
 					resultItem.sensorBG	= sensorBG;
 				
 				//If the object contains more than just time and date and a timestamp, push it
@@ -233,20 +304,15 @@ module.exports = (function() {
 			}
 			req.session.file = combinedData;
 			res.redirect('/graph');
-		}
+		} else {
+            req.flash("error", "Dit bestand is van een ongeldig bestandsformaat.");
+            res.redirect("/fileupload");
+        }
     });
 
     router.get('/getGraphData', function(req, res){
       res.send(helper.getDailyGraphData(req.session.file, req));
     });
-
-    /*router.get('/dailyGraph', function(req, res){
-      res.render('dailyGraph', {
-        title: 'Grafiek Paradigm Veo',
-        header: 'Grafiek',
-        readFile: req.session.file
-      });
-    });*/
 
     router.get('/moregraphs', function(req, res){
         res.render('moreGraphs', {
@@ -354,7 +420,7 @@ module.exports = (function() {
                 description: curDesc,
                 category: curCat
             });
-        };
+        }
         res.send(result);
     });
 
@@ -364,7 +430,7 @@ module.exports = (function() {
     ///////////////////////////////////////////////////////////////////
     router.get('/readingsData', fileActive, function(req, res) {
         var json = req.session.file;
-        var curDate, curCat, curVal, curDesc, curCom, curHour, curDay;
+        var curDate, curCat, curVal, curHour, curDay;
         var resultFile = [];
 
         json.sort(function(a, b) {
@@ -391,62 +457,18 @@ module.exports = (function() {
             curHour = hours.substr(-2);
             curDay = day + "-" + month + "-" + year;
 
-            if (current.EVENTTYPE === "0") {
-                curCat = "Beweging";
-                curDesc = current.C0 + "\n" + current.C1 + "\n" + current.C2;
-            } else if (current.EVENTTYPE === "1") {
+            if (current.EVENTTYPE === "1") {
                 curCat = "Glucosemeting";
                 curVal = parseFloat(current.I1 / 18).toFixed(1);
-                curDesc = current.C0;
             } else if (current.EVENTTYPE === "2") {
                 curCat = "Basaal";
                 curVal = current.D0;
-                curDesc = current.C1;
             } else if (current.EVENTTYPE === "3") {
                 curCat = "Bolus";
                 curVal = current.D0;
-                curDesc = current.C0 + "\n" + current.C1 + "\n" + current.C2;
-            } else if (current.EVENTTYPE === "4") {
-                curCat = "Labresultaten";
-                curVal = current.C1;
-                curDesc = current.C0 + "\n" + current.C1 + "\n" + current.C2 + "\n" + current.C3;
-            } else if (current.EVENTTYPE === "5") { // Descriptions need to be fixed here: re-read CoPilot import manual
-                curCat = "Maaltijd";
-                curVal = current.D1;
-            } else if (current.EVENTTYPE === "6") {
-                curCat = "Medisch onderzoek";
-                curDesc = current.C0 + "\n" + current.C1;
-            } else if (current.EVENTTYPE === "7") {
-                curCat = "Medicijnen";
-                curDesc = current.C0 + "\n" + current.C1 + "\n" + current.C2;
-            } else if (current.EVENTTYPE === "8") {
-                curCat = "Notities";
-                curDesc = current.C0 + "\n" + current.C1;
-            } else if (current.EVENTTYPE === "9") {
-                curCat = "Gezondheid";
-                curDesc = current.C0;
-            } else if (current.EVENTTYPE === "10") {
-                curCat = "Keton";
-                curVal = current.D0;
-                curDesc = current.C0 + "\n" + current.C1 + "\n" + current.C2;
-            } else if (current.EVENTTYPE === "15") {
-                curCat = "Alarm";
-                curVal = current.I0;
-            } else if (current.EVENTTYPE === "16") {
-                curCat = "Generiek";
             } else {
                 curCat = "";
-                curDesc = "";
             }
-
-            if (typeof curDesc === 'undefined')
-                curDesc = "";
-
-            // Read comments and push them to an array
-            if (typeof current.COMMENT != 'undefined')
-                curCom = current.COMMENT.replace(/; /g, "\n").replace(".", ". ");
-            else
-                curCom = "";
 
             if (typeof curVal === 'undefined')
                 curVal = "";
@@ -458,9 +480,7 @@ module.exports = (function() {
                     day: curDay,
                     bolusHour: curHour,
                     bolusValue: curVal,
-                    category: curCat,
-                    description: curDesc,
-                    comment: curCom
+                    category: curCat
                 });
             } else if (curCat === "Basaal") {
                 resultFile.push({
@@ -469,9 +489,7 @@ module.exports = (function() {
                     day: curDay,
                     basalHour: curHour,
                     basalValue: curVal,
-                    category: curCat,
-                    description: curDesc,
-                    comment: curCom
+                    category: curCat
                 });
             } else if (curCat === "Glucosemeting") {
                 resultFile.push({
@@ -480,9 +498,7 @@ module.exports = (function() {
                     day: curDay,
                     glucoseHour: curHour,
                     glucoseValue: curVal,
-                    category: curCat,
-                    description: curDesc,
-                    comment: curCom
+                    category: curCat
                 });
             }
         }
@@ -496,8 +512,6 @@ module.exports = (function() {
                 "bolusValues": us.pluck(elem, 'bolusValue'),
                 "glucoseValues": us.pluck(elem, 'glucoseValue'),
                 "categories": us.pluck(elem, 'category'),
-                "descriptions": us.pluck(elem, 'description'),
-                "comments": us.pluck(elem, 'comment'),
                 "date": us.pluck(elem, 'date'),
                 "day": us.pluck(elem, 'day')[0],
                 "basalHours": us.pluck(elem, 'basalHour'),
@@ -664,7 +678,8 @@ module.exports = (function() {
         res.render('readings', {
             title: 'Tabel OmniPod',
             header: 'Tabel',
-            readFile: JSON.stringify(resultObj)
+            readFile: JSON.stringify(resultObj),
+            user: req.user
         });
     });
 
@@ -730,20 +745,42 @@ module.exports = (function() {
                 title: "Grafiek OmniPod",
                 header: "Grafiek",
                 items: JSON.stringify(items),
-                readFile: req.session.file
+                readFile: req.session.file,
+                user: req.user
             });
         } else {
             res.render('dailyGraph', {
                 title: 'Grafiek Paradigm Veo',
                 header: 'Grafiek',
-                readFile: req.session.file
+                readFile: req.session.file,
+                user: req.user
             });
         }
 
     });
 
+    router.post("/delete/user/:id", isLoggedIn, function(req, res) {
+        // delete a user (by id)
+        var model = req.db.model("User"),
+            id = req.params.id;
+
+        if (id != req.user._id) {
+            req.flash("error", "Je hebt geen toegang tot deze account.");
+            res.redirect("../");
+        } else {
+            model.findByIdAndRemove(id, function(err, user) {
+                if (err) {
+                    res.send(err);
+                } else {
+                    req.flash('success', 'Account verwijderd.');
+                    res.redirect('/');
+                }
+            });
+        }
+    });
+
     return router;
-})();
+};
 
 function fileActive(req, res, next) {
     if (typeof req.session.file === 'undefined') {
@@ -752,4 +789,12 @@ function fileActive(req, res, next) {
     } else {
         next();
     }
+}
+
+function isLoggedIn(req, res, next) {
+    if (req.isAuthenticated())
+        return next();
+
+    req.flash('error', 'Je moet ingelogd zijn om dit te doen.');
+    res.redirect('/login');
 }
