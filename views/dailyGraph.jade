@@ -11,15 +11,28 @@ block head
 	script(type='text/javascript', src='js/dailyGraph.js')
 		
 block body
-	.bodycontainer
-		input.datepicker
-		.container
-			#chartdiv
-			#statisticsdiv
-				table#graphTable.table.table-bordered.table-striped
-					tbody#statTableBody
-				#bolusGraph
-		.container
-			div#boluseventsdiv
-				table#eventTable.table.table-bordered
-					tbody#eventTableBody
+	.container
+		.form-inline
+			.form-group
+				input.form-control.input-sm(type='text' id='inputDatePicker').datepicker
+			button.btn.btn-primary.btn-sm(type='button' onclick='updateChart()') Go!
+		script.
+			$('.datepicker').datepicker({
+				autoclose: true,
+				format: 'dd-mm-yyyy',
+				startDate: '#{startDate}',
+				endDate: '#{endDate}',
+				disableTouchKeyboard: true,
+				todayHighlight: true,
+				weekStart: 1
+			});
+		#chartdiv
+		#statisticsdiv
+			table#graphTable.table.table-bordered.table-striped
+				tbody#statTableBody
+			#donutdiv
+		#boluseventsdiv
+			table#eventTable.table.table-bordered
+				thead
+					th.bg-primary(colspan='11') Bolus Events	
+				tbody#eventTableBody

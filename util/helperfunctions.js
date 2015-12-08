@@ -11,6 +11,8 @@ exports.getDailyGraphData = function(combinedData, req){
 			inputData.push(combinedData[i]);
 		}
 	}
+	if(inputData.length === 0)
+		return;
 	
 	if(!req.query.weekly){
 		if(inputData[inputData.length-1].timestamp < endDate)
@@ -54,27 +56,28 @@ exports.getDailyGraphData = function(combinedData, req){
 	}
 	
 	//If it's for the weekly view, there's no need to add the other data
-	// if(req.query.weekly)
-		// return result;
+	if(req.query.weekly)
+		return result;
 	
 	//Add summary data
 	result.summary = {
-		"Date"										:	inputData[0].date,
-		"Daily carbs (grams)"			: 0,
-		"BG readings"							: 0,
+		"Statistics"				: inputData[0].date,
 		"Readings avg. (mmol/L)"	: 0,
-		"Fills"										: 0,
+		"BG readings"				: 0,
+		"Daily carbs (grams)"		: 0,
 		
-		"Total insulin (U)"				: 0,
-		"Food bolus (U)"					: 0,
+		"Total insulin (U)"			: 0,
+		"Food bolus (U)"			: 0,
 		"Correction bolus (U)"		: 0,
-		"Basal (U)"								: 0
+		"Basal (U)"					: 0,
+		
+		"Fills"						: 0
 	}
 	
 	var bgReadingTotal = 0;
 	var primeTotal = 0;
 	var basalChanged = [];
-	for(var i = 0; i < inputData.length; i++){
+	for(var i = 0; i < inputData.length; i++){		
 		result.summary["Daily carbs (grams)"] += inputData[i].bwzCarbInput || 0;
 		result.summary["Food bolus (U)"] += inputData[i].bwzFoodEstimate || 0;
 		result.summary["Correction bolus (U)"] += inputData[i].bwzCorrectionEstimate || 0;
@@ -96,8 +99,8 @@ exports.getDailyGraphData = function(combinedData, req){
 			});
 		}
 	}
-
-	result.summary["Readings avg. (mmol/L)"] = (bgReadingTotal / result.summary["BG readings"]).toFixed(1) || 0;
+	
+	result.summary["Readings avg. (mmol/L)"] = (bgReadingTotal / result.summary["BG readings"] || 0).toFixed(1);
 	result.summary["Fills"] += " (" + (primeTotal || 0) + " U)";
 	
 	result.summary["Food bolus (U)"] = result.summary["Food bolus (U)"];
