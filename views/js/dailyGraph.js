@@ -248,8 +248,8 @@ function buildDonut(data){
 		"titleField": "title",
 		"valueField": "value",
 		"labelRadius": 5,
-		"radius": "38%",
-		"innerRadius": "36%",
+		"radius": "30%",
+		"innerRadius": "28%",
 		"labelText": "[[title]]: [[value]]U",
 		"balloonText": "[[percents]]%"
 	});
