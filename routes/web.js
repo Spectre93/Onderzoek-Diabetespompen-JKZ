@@ -92,6 +92,7 @@ module.exports = (function() {
 				delimiter: ";"
 			});
 			
+			var seen = [];
 			//Sort the results.data array
 			parseResults.data = parseResults.data.sort(function (a, b) {
 				if (a["Date"] > b["Date"])
@@ -134,7 +135,7 @@ module.exports = (function() {
 
 				//If there's a bolus entry, add it to the new item
 				var bolusType = currentEntry["Bolus Type"];
-				if(bolusType != ""){
+				if(bolusType != "" && seen.indexOf(i) === -1){
 					var bolusVolumeSelected = currentEntry["Bolus Volume Selected (U)"];
 					var bolusVolumeDelivered = currentEntry["Bolus Volume Delivered (U)"];
 					
@@ -215,6 +216,43 @@ module.exports = (function() {
 					resultItem.bwzCorrectionEstimate = currentEntry["BWZ Correction Estimate (U)"];
 					resultItem.bwzFoodEstimate = currentEntry["BWZ Food Estimate (U)"];
 					resultItem.bwzActiveInsulin = currentEntry["BWZ Active Insulin (U)"];
+					for(var j = 0; j < 4; j++){
+						if(i + j < parseResults.data.length){
+							var bolusType = parseResults.data[i+j]["Bolus Type"];
+							if(bolusType != ""){
+								var bolusVolumeSelected = parseResults.data[i+j]["Bolus Volume Selected (U)"];
+								var bolusVolumeDelivered = parseResults.data[i+j]["Bolus Volume Delivered (U)"];
+								
+								seen.push(i+j);
+								//If it's normal bolus, just add it to the new item
+								if(bolusType == "Normal"){
+									resultItem.bolusType = bolusType;
+									resultItem.bolusVolumeSelected = bolusVolumeSelected;
+									resultItem.bolusVolumeDelivered = bolusVolumeDelivered;
+								}
+								//If it's a Dual bolus, put the normal part in the new item
+								else if(bolusType == "Dual (normal part)"){
+									resultItem.bolusType = "Dual";
+									resultItem.bolusVolumeSelected = bolusVolumeSelected;
+									resultItem.bolusVolumeDelivered = bolusVolumeDelivered;
+									
+									//Look for the square part
+									for(var k = 0; k < 10; k++){
+										if(i + j + k < parseResults.data.length){
+											var bolusDuration = parseResults.data[i+j+k]["Programmed Bolus Duration (h:mm:ss)"];
+											if(bolusDuration != ""){
+												//And add that to the item as well
+												resultItem.squareVolumeSelected = parseResults.data[i+j+k]["Bolus Volume Selected (U)"];
+												resultItem.squareVolumeDelivered = parseResults.data[i+j+k]["Bolus Volume Delivered (U)"];
+												resultItem.bolusDuration = bolusDuration;
+												break;
+											}
+										}
+									}
+								}
+							}
+						}
+					}
 				}
 					
 				// var sensorCalibration = currentEntry["Sensor Calibration BG (mmol/L)"];
