@@ -59,6 +59,7 @@ exports.prepareFile = function(req, res) {
             return 1;
     });
     
+	var seen = [];
     //Loop through data and combine certain events
     var combinedData = [];
     for(var i = 0; i < parseResults.data.length; i++){
@@ -81,7 +82,7 @@ exports.prepareFile = function(req, res) {
 
         //If there's a bolus entry, add it to the new item
         var bolusType = currentEntry["Bolus Type"];
-        if(bolusType !== ""){
+        if(bolusType !== "" && seen.indexOf(i) === -1){
             var bolusVolumeSelected = currentEntry["Bolus Volume Selected (U)"];
             var bolusVolumeDelivered = currentEntry["Bolus Volume Delivered (U)"];
             
@@ -129,6 +130,8 @@ exports.prepareFile = function(req, res) {
                         for(var k = 0; k < 10; k++){
                             if(i + j + k < parseResults.data.length){
                                 var primeType = parseResults.data[i+j+k]["Prime Type"];
+								if(primeType == "Manual")	//If different prime is found, abort
+									break;
                                 if(primeType == "Fixed"){
                                     resultItem.primeType = "Both";
                                     resultItem.fixedPrimeVolumeDelivered = parseResults.data[i+j+k]["Prime Volume Delivered (U)"];
@@ -160,6 +163,44 @@ exports.prepareFile = function(req, res) {
             resultItem.bwzCorrectionEstimate = currentEntry["BWZ Correction Estimate (U)"];
             resultItem.bwzFoodEstimate = currentEntry["BWZ Food Estimate (U)"];
             resultItem.bwzActiveInsulin = currentEntry["BWZ Active Insulin (U)"];
+			for(var j = 0; j < 4; j++){
+				if(i + j < parseResults.data.length){
+					var bolusType = parseResults.data[i+j]["Bolus Type"];
+					if(bolusType != ""){
+						var bolusVolumeSelected = parseResults.data[i+j]["Bolus Volume Selected (U)"];
+						var bolusVolumeDelivered = parseResults.data[i+j]["Bolus Volume Delivered (U)"];
+						
+						seen.push(i+j);
+						//If it's normal bolus, just add it to the new item
+						if(bolusType == "Normal"){
+							resultItem.bolusType = bolusType;
+							resultItem.bolusVolumeSelected = bolusVolumeSelected;
+							resultItem.bolusVolumeDelivered = bolusVolumeDelivered;
+						}
+						//If it's a Dual bolus, put the normal part in the new item
+						else if(bolusType == "Dual (normal part)"){
+							resultItem.bolusType = "Dual";
+							resultItem.bolusVolumeSelected = bolusVolumeSelected;
+							resultItem.bolusVolumeDelivered = bolusVolumeDelivered;
+							
+							
+						//Look for the square part
+							for(var k = 0; k < 10; k++){
+								if(i + j + k < parseResults.data.length){
+									var bolusDuration = parseResults.data[i+j+k]["Programmed Bolus Duration (h:mm:ss)"];
+									if(bolusDuration != ""){
+										//And add that to the item as well
+										resultItem.squareVolumeSelected = parseResults.data[i+j+k]["Bolus Volume Selected (U)"];
+										resultItem.squareVolumeDelivered = parseResults.data[i+j+k]["Bolus Volume Delivered (U)"];
+										resultItem.bolusDuration = bolusDuration;
+										break;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
         }
             
         // var sensorCalibration = currentEntry["Sensor Calibration BG (mmol/L)"];
@@ -213,30 +254,30 @@ exports.getDailyGraphData = function(req) {
     };
 
     //Add   graph data
-    for (var i = 0; i < inputData.length; i++) {
-        var resultObject = {};
-        var currentEntry = inputData[i];
-
-        if (currentEntry.basalRate != undefined)
-            resultObject.basalRate = currentEntry.basalRate;
-        if (currentEntry.bgReading != undefined)
-            resultObject.bgReading = currentEntry.bgReading;
-        if (currentEntry.bolusVolumeEstimate != undefined)
-            resultObject.bolusVolumeEstimate = currentEntry.bolusVolumeEstimate;
-        if (currentEntry.bolusVolumeDelivered != undefined)
-            resultObject.bolusVolumeDelivered = currentEntry.bolusVolumeDelivered;
-        if (currentEntry.bwzCarbInput != undefined)
-            resultObject.bwzCarbInput = currentEntry.bwzCarbInput;
-        if (currentEntry.sensorBG != undefined)
-            resultObject.sensorBG = currentEntry.sensorBG;
-        if (currentEntry.rewind != undefined)
-            resultObject.rewind = currentEntry.rewind;
-
-        if (Object.keys(resultObject).length != 0) {
-            resultObject.date = currentEntry.timestamp;
-            result.graph.push(resultObject);
-        }
-    }
+    for(var i = 0; i < inputData.length; i++){
+		var resultObject = {};
+		var currentEntry = inputData[i];
+		
+		if(currentEntry.basalRate !== undefined)
+			resultObject.basalRate = currentEntry.basalRate;
+		if(currentEntry.bgReading !== undefined && currentEntry.bolusVolumeDelivered !== 0)
+			resultObject.bgReading = currentEntry.bgReading;
+		if(currentEntry.bolusVolumeEstimate !== undefined && currentEntry.bolusVolumeDelivered !== 0)
+			resultObject.bolusVolumeEstimate = currentEntry.bolusVolumeEstimate;
+		if(currentEntry.bolusVolumeDelivered !== undefined && currentEntry.bolusVolumeDelivered !== 0)
+			resultObject.bolusVolumeDelivered = currentEntry.bolusVolumeDelivered;
+		if(currentEntry.bwzCarbInput !== undefined && currentEntry.bwzCarbInput !== 0)
+			resultObject.bwzCarbInput = currentEntry.bwzCarbInput;
+		if(currentEntry.sensorBG !== undefined)
+			resultObject.sensorBG = currentEntry.sensorBG;
+		if(currentEntry.rewind !== undefined)
+			resultObject.rewind	= currentEntry.rewind;
+		
+		if(Object.keys(resultObject).length !== 0){
+			resultObject.date = currentEntry.timestamp;
+			result.graph.push(resultObject);
+		}
+	}
 
     //If it's for the weekly view, there's no need to add the other data
     if (req.query.weekly)
@@ -265,17 +306,17 @@ exports.getDailyGraphData = function(req) {
         result.summary["Food bolus (U)"] += inputData[i].bwzFoodEstimate || 0;
         result.summary["Correction bolus (U)"] += inputData[i].bwzCorrectionEstimate || 0;
 
-        if (inputData[i].bgReading != undefined) {
+        if (inputData[i].bgReading !== undefined) {
             result.summary["BG readings"]++;
             bgReadingTotal += inputData[i].bgReading;
         }
 
-        if (inputData[i].rewind != undefined) {
+        if (inputData[i].rewind !== undefined) {
             result.summary["Fills"]++;
             primeTotal += inputData[i].manualPrimeVolumeDelivered;
         }
 
-        if (inputData[i].basalRate != undefined) {
+        if (inputData[i].basalRate !== undefined) {
             basalChanged.push({
                 "timestamp": inputData[i].timestamp,
                 "basalRate": inputData[i].basalRate
@@ -283,20 +324,20 @@ exports.getDailyGraphData = function(req) {
         }
     }
 
-    result.summary["Readings avg. (mmol/L)"] = (bgReadingTotal / result.summary["BG readings"] || 0).toFixed(1);
-    result.summary["Fills"] += " (" + (primeTotal || 0) + " U)";
-
-    result.summary["Food bolus (U)"] = result.summary["Food bolus (U)"];
-    result.summary["Correction bolus (U)"] = result.summary["Correction bolus (U)"];
-
-    for (var l = 0; l < basalChanged.length - 1; l++) {
-        var firstDate = new Date(basalChanged[l].timestamp + ' UTC+0000');
-        var secondDate = new Date(basalChanged[l + 1].timestamp + ' UTC+0000');
-        result.summary["Basal (U)"] += (((secondDate.getTime() - firstDate.getTime()) / 3600000) * basalChanged[l].basalRate);
-    }
-    result.summary["Basal (U)"] = +result.summary["Basal (U)"].toFixed(1);
-
-    result.summary["Total insulin (U)"] = result.summary["Food bolus (U)"] + result.summary["Correction bolus (U)"] + result.summary["Basal (U)"];
+	result.summary["Readings avg. (mmol/L)"] = (bgReadingTotal / result.summary["BG readings"] || 0).toFixed(1);
+	result.summary["Fills"] += " (" + (primeTotal || 0) + " U)";
+	
+	result.summary["Food bolus (U)"] = +result.summary["Food bolus (U)"].toFixed(1);
+	result.summary["Correction bolus (U)"] = +result.summary["Correction bolus (U)"].toFixed(1);
+	
+	for(var l = 0; l < basalChanged.length-1; l++){
+		var firstDate = new Date(basalChanged[l].timestamp + ' UTC+0000');
+		var secondDate = new Date(basalChanged[l+1].timestamp + ' UTC+0000');
+		result.summary["Basal (U)"] += (((secondDate.getTime() - firstDate.getTime())/ 3600000) * basalChanged[l].basalRate);
+	}
+	result.summary["Basal (U)"] = +result.summary["Basal (U)"].toFixed(1);
+	
+	result.summary["Total insulin (U)"] = +(result.summary["Food bolus (U)"] + result.summary["Correction bolus (U)"] + result.summary["Basal (U)"]).toFixed(1);
 
     //Add donut data
     result.donut = [{
@@ -347,43 +388,49 @@ exports.getDailyGraphData = function(req) {
 }
 
 exports.getReadings = function(req) {
-    var file = req.session.file;
-    var result = {};
+	var file = req.session.file;
+	var result = {};
+	
+	for(var i = file.length-1; i >= 0; i--){
+		var curDate = file[i].date.substr(8,2) + "-" + file[i].date.substr(5,2) + "-" + file[i].date.substr(0,4);
+		var cur = result[curDate];
+		if(cur == undefined){
+			cur = {
+				header: [curDate],
+				glucoseValues: ['Glucose'],
+				carbValues: ['Carbs'],
+				bolusValues: ['Bolus'],
+				basalValues: ['Basal']
+			};
+			
+			for(var j = 0; j < 24; j++){
+				if(j<10)
+					cur.header.push('0' + j);
+				else 
+					cur.header.push('' + j);
+				cur.basalValues.push('');
+				cur.glucoseValues.push('');
+				cur.bolusValues.push('');
+				cur.carbValues.push('');
+			}
+			result[curDate] = cur;
+		}
 
-    for(var i = file.length-1; i >= 0; i--){
-        var cur = result[file[i].date];
-        if(cur === undefined){
-            cur = {
-                header: [file[i].date],
-                basalValues: ['Basal'],
-                glucoseValues: ['Glucose'],
-                bolusValues: ['Bolus']
-            };
-            
-            for(var j = 0; j < 24; j++){
-                if(j<10)
-                    cur.header.push('0' + j);
-                else 
-                    cur.header.push('' + j);
-                cur.basalValues.push('');
-                cur.glucoseValues.push('');
-                cur.bolusValues.push('');
-            }
-            result[file[i].date] = cur;
-        }
-
-        if(file[i].basalRate !== undefined){
-            result[file[i].date].basalValues[+file[i].time.substring(0,2)+1] = file[i].basalRate;
-        }
-        
-        if(file[i].bwzBgInput !== undefined){
-            result[file[i].date].glucoseValues[+file[i].time.substring(0,2)+1] = file[i].bwzBgInput;
-        }
-        
-        if(file[i].bolusVolumeDelivered !== undefined){
-            result[file[i].date].bolusValues[+file[i].time.substring(0,2)+1] = file[i].bolusVolumeDelivered;
-        }
-    }
-
+		if(file[i].basalRate !== undefined){
+			result[curDate].basalValues[+file[i].time.substring(0,2)+1] = file[i].basalRate;
+		}
+		
+		if(file[i].bwzBgInput !== undefined){
+			result[curDate].glucoseValues[+file[i].time.substring(0,2)+1] = file[i].bwzBgInput;
+		}
+		
+		if(file[i].bolusVolumeDelivered !== undefined){
+			result[curDate].bolusValues[+file[i].time.substring(0,2)+1] = file[i].bolusVolumeDelivered;
+		}
+		
+		if(file[i].bwzCarbInput !== undefined){
+			result[curDate].carbValues[+file[i].time.substring(0,2)+1] = file[i].bwzCarbInput;
+		}
+	}
     return result;
 }
