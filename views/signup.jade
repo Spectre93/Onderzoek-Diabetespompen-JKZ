@@ -2,7 +2,6 @@ extends layout
 
 block body
 	body
-		script(type='text/javascript', src='../js/autoLogin.js')
 		#container
 			.row.col-lg-8.col-lg-offset-2
 				if message
@@ -26,10 +25,22 @@ block body
 							.alert.alert-dismissable.alert-warning
 								button.close(data-dismiss='alert', type='button') &times;
 								p #{msg}
-			.col-lg-12
+			.col-sm-6.col-sm-offset-3
 				row
-					p(style='white-space:pre-wrap;')
-						|Upload een .XML of .CSV-bestand na exporteren vanuit Carelink resp. CoPilot. Je wordt automatisch naar de juiste pagina's verwezen.
-						br
-						|Om een nieuw bestand te uploaden, ga naar "Uploaden". Het oude bestand wordt dan overschreven.
-					a.btn.btn-sm.btn-primary(role="button", href="./fileupload", style="margin-top:15px") Uploaden
+					form(action="/signup", method="post")
+						.form-group
+							label(for="firstname") Voornaam
+							input#firstname.form-control(type="text", name="firstname")
+						.form-group
+							label(for="lastname") Achternaam
+							input#lastname.form-control(type="text", name="lastname")
+						.form-group
+							label(for="email") E-mail
+							input#email.form-control(type="email", name="email")
+						.form-group
+							label(for="password") Wachtwoord
+							input#password.form-control(type="password", name="password")
+						button.btn.btn-primary(type="submit") Inschrijven
+					hr
+					p(style="white-space:pre-wrap")
+						|Al een account? #[a(href="/login") Log in]

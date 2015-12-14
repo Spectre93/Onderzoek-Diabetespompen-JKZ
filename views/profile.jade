@@ -1,0 +1,47 @@
+extends layout
+
+block body
+	body
+		#container
+			.row.col-lg-8.col-lg-offset-2
+				if message
+					if message.error
+						each msg in message.error
+							.alert.alert-dismissable.alert-danger
+								button.close(data-dismiss='alert', type='button') &times;
+								p #{msg}
+					if message.info
+						each msg in message.info
+							.alert.alert-dismissable.alert-info
+								button.close(data-dismiss='alert', type='button') &times;
+								p #{msg}
+					if message.success
+						each msg in message.success
+							.alert.alert-dismissable.alert-success
+								button.close(data-dismiss='alert', type='button') &times;
+								p #{msg}
+					if message.warning
+						each msg in message.warning
+							.alert.alert-dismissable.alert-warning
+								button.close(data-dismiss='alert', type='button') &times;
+								p #{msg}
+			.col-sm-6.col-sm-offset-3
+				.row
+					.well
+						p
+							strong Naam: #{user.firstname} #{user.lastname} <br />
+							strong E-mail: #{user.email} <br />
+							strong Bestanden: #{user.uploadedFiles}
+					form(action="../authorise/user", method="post")
+						.form-group
+							label.sr-only Email
+							input.form-control(type="email", name="email", placeholder="E-mail")
+						button.btn.btn-default(type="submit", style="margin-bottom:15px;") Authoriseer account
+					form(action="../unauthorise/user", method="post")
+						.form-group
+							label.sr-only Email
+							input.form-control(type="email", name="email", placeholder="E-mail")
+						button.btn.btn-default(type="submit", style="margin-bottom:15px;") Deauthoriseer account
+					a.btn.btn-default(role="button", href="./profile/users", style="margin-bottom:15px;") Gebruikers beheren
+					form(action="../delete/user/#{user._id}", method="post")
+						button.btn.btn-danger(type="submit") Verwijder account

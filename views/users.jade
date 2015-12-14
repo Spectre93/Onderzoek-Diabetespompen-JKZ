@@ -1,0 +1,36 @@
+extends layout
+
+block body
+  body
+    #container
+      .row.col-lg-8.col-lg-offset-2
+        if message
+          if message.error
+            each msg in message.error
+              .alert.alert-dismissable.alert-danger
+                button.close(data-dismiss='alert', type='button') &times;
+                p #{msg}
+          if message.info
+            each msg in message.info
+              .alert.alert-dismissable.alert-info
+                button.close(data-dismiss='alert', type='button') &times;
+                p #{msg}
+          if message.success
+            each msg in message.success
+              .alert.alert-dismissable.alert-success
+                button.close(data-dismiss='alert', type='button') &times;
+                p #{msg}
+          if message.warning
+            each msg in message.warning
+              .alert.alert-dismissable.alert-warning
+                button.close(data-dismiss='alert', type='button') &times;
+                p #{msg}
+      .col-sm-6.col-sm-offset-3
+        .row
+          for result in users
+                    .bs-component
+                      .list-group
+                        span.list-group-item(href='#')
+                          h4.list-group-item-heading #{result.firstname} #{result.lastname}
+                          p.list-group-item-text
+                            | E-mail: #[a(href='mailto:#{result.email}') #{result.email}]

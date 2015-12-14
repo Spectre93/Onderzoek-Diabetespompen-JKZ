@@ -27,7 +27,7 @@ var bolusEventRowNames = [
 ];
 
 $(document).ready(function(){			
-	$.get('/getGraphData',parameters,function(data){	
+	$.get('/getGraphData', parameters, function(data){	
 		buildGraph(data.graph);
 		buildSummary(data.summary);
 		buildDonut(data.donut);
@@ -64,7 +64,7 @@ function updateChart(){
 	$('#statTableBody').empty();
 	$('#eventTableBody').empty();
 	$('#donutdiv').empty();
-	$.get('/getGraphData',parameters,function(data){	
+	$.get('/getGraphData', parameters, function(data){	
 		buildGraph(data.graph);
 		buildSummary(data.summary);
 		buildDonut(data.donut);
@@ -150,7 +150,7 @@ function buildGraph(data){
 			"clustered": false,
 			"columnWidth": 15,
 			"valueField": "bolusVolumeDelivered",
-			"balloonText": "<b>[[value]]\b"
+			"balloonText": "<b>[[value]]</b>"
 		},{
 			"id": "bwzCarbInput",
 			"title": "BWZ Carb Input (grams)",

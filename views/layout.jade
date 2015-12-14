@@ -4,14 +4,14 @@ html(lang='en')
 		meta(charset='utf-8')
 		meta(name='viewport', content='width=device-width, initial-scale=1')
 		
-		link(rel='stylesheet', type="text/css", href='css/bootstrap.min.css')
-		link(rel='stylesheet', type="text/css", href='css/style.css')
+		link(rel='stylesheet', type="text/css", href='../css/bootstrap.min.css')
+		link(rel='stylesheet', type="text/css", href='../css/style.css')
 		
-		link(rel='stylesheet/less', type='text/css', href='/css/variables.less')
-		link(rel='stylesheet/less', type='text/css', href='/css/bootstrap.less')
+		link(rel='stylesheet/less', type='text/css', href='../css/variables.less')
+		link(rel='stylesheet/less', type='text/css', href='../css/bootstrap.less')
 		
-		script(type='text/javascript', src='js/jquery-2.1.4.min.js')
-		script(src='js/bootstrap.min.js')
+		script(type='text/javascript', src='../js/jquery-2.1.4.min.js')
+		script(src='../js/bootstrap.min.js')
 		
 		title= title	
 
@@ -34,16 +34,18 @@ html(lang='en')
 								a(href='/graph') Grafiek
 							li
 								a(href='/readings') Tabel
-						li
-							a(href='/fileupload') Uploaden
-						if !user
+						if user
 							li
-								a(href='/register') Registreren
-						else
+								a(href='/fileupload') Uploaden
 							li
 								a(href='/profile') Profiel
 							li
-								a(href='/logout') Afmelden					
+								a(href='/logout') Afmelden
+						else
+							li
+								a(href='/login') Inloggen
+							li
+								a(href='/signup') Registreren
 		.container
 			.bs-docs-section
 				.page-header
