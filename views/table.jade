@@ -10,10 +10,11 @@ block body
 	#container.col-lg-12
 		.panel.panel-primary
 			.panel-heading Gegevens Paradigm Veo
-			table#datatable.table
-				tbody#tableHeader
-					each date in data
-						each row in date
-							tr
-								each val in row
-									td= val
+			#tablebodydiv
+				table.table.table-condensed
+					tbody#tableHeader
+						each date in data
+							each row in date
+								tr
+									each val in row
+										td= val

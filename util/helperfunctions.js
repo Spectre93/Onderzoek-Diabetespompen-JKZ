@@ -34,22 +34,23 @@ exports.getDailyGraphData = function(combinedData, req){
 		var resultObject = {};
 		var currentEntry = inputData[i];
 		
-		if(currentEntry.basalRate != undefined)
+		if(currentEntry.basalRate !== undefined)
 			resultObject.basalRate = currentEntry.basalRate;
-		if(currentEntry.bgReading != undefined)
+		if(currentEntry.bgReading !== undefined && currentEntry.bolusVolumeDelivered !== 0)
 			resultObject.bgReading = currentEntry.bgReading;
-		if(currentEntry.bolusVolumeEstimate != undefined)
+		if(currentEntry.bolusVolumeEstimate !== undefined && currentEntry.bolusVolumeDelivered !== 0)
 			resultObject.bolusVolumeEstimate 	= currentEntry.bolusVolumeEstimate;
-		if(currentEntry.bolusVolumeDelivered != undefined)
+		if(currentEntry.bolusVolumeDelivered !== undefined && currentEntry.bolusVolumeDelivered !== 0)
 			resultObject.bolusVolumeDelivered = currentEntry.bolusVolumeDelivered;
-		if(currentEntry.bwzCarbInput != undefined)
+		if(currentEntry.bwzCarbInput !== undefined && currentEntry.bwzCarbInput !== 0)
 			resultObject.bwzCarbInput = currentEntry.bwzCarbInput;
-		if(currentEntry.sensorBG != undefined)
+			
+		if(currentEntry.sensorBG !== undefined)
 			resultObject.sensorBG	= currentEntry.sensorBG;
-		if(currentEntry.rewind != undefined)
+		if(currentEntry.rewind !== undefined)
 			resultObject.rewind	= currentEntry.rewind;
 		
-		if(Object.keys(resultObject).length != 0){
+		if(Object.keys(resultObject).length !== 0){
 			resultObject.date = currentEntry.timestamp;
 			result.graph.push(resultObject);
 		}
@@ -117,16 +118,16 @@ exports.getDailyGraphData = function(combinedData, req){
 
 	//Add donut data
 	result.donut = [{
-    "title": "Basal",
-    "value": result.summary["Basal (U)"]
-  },{
-    "title": "Corr.",
-    "value": result.summary["Correction bolus (U)"]
-  },{
-    "title": "Food",
-    "value": result.summary["Food bolus (U)"],
-	"color": "#d38df1"
-  }];
+		"title": "Basal",
+		"value": result.summary["Basal (U)"]
+	  },{
+		"title": "Corr.",
+		"value": result.summary["Correction bolus (U)"]
+	  },{
+		"title": "Food",
+		"value": result.summary["Food bolus (U)"],
+		"color": "#d38df1"
+	  }];
 	
 	//Add event data
 	result.events = [];

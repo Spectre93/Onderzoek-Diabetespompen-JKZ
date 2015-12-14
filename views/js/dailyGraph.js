@@ -266,17 +266,13 @@ function buildEvents(data){
 		else if(i >= 10 && i <= 14)
 			s = "bgl";
 		
-		var bottom = "";
-		if(i == 1 || i == 6 || i == 9 || i == 14)
-			bottom = "bottom";
-		
-		$("#eventTableBody").append("<tr id =\"" + i + "\" class=\"" + bottom + "\"><th class=\"" + s + "\">" + bolusEventRowNames[i] + "</th></tr>");
+		$("#eventTableBody").append("<tr id =\"" + i + "\"><td class=\"" + s + "\">" + bolusEventRowNames[i] + "</td></tr>");
 	}
 	
 	//Fill cells with known data, add empty cells to fill table to 10 columns
 	for(var j = 0; j < 10; j++){
 		var i = 0;
-		if(data[j] != undefined){
+		if(data !== undefined && data[j] !== undefined){
 			for(var propName in data[j]){		
 				$("#eventTableBody>#"+i+"").append("<td>" + data[j][propName] + "</td>");
 				i++;

@@ -1,30 +1,30 @@
-/*=========================
-  ====== Graph.js   =======
-  =========================*/
+/*====== Graph ======*/
 #chartdiv {
-	width	: 73%;
-	height	: 464px;
-	float	: left;
+	height	: 500px;
 }
 
+/*====== Statistics ======*/
 #statisticsdiv {
-	width		: 27%;
-	height		: 500px;
-	font-size	: 12px;
-	padding-top	: 2%;
-	float		: right;
+	margin-top	: 19px;
+	max-height	: 320px;
+	font-size	: 0.9em;
 }
 
+#statsrow{
+	height	: 400px;
+}
+
+/*====== Donut ======*/
 #donutdiv {
-	width	: 100%;
-	height	: 125px;
-	float	: right;
+	min-height	: 50%;
+	max-height	: 100%;
+	margin: auto;
 }
 
+/*====== Bolus Events ======*/
 #boluseventsdiv{
-	width		: 100%;
-	padding-left: 25px;
 	font-size	: 12px;
+	overflow-x	: auto;
 }
 
 .table-bordered>tbody>tr>td{
@@ -35,13 +35,18 @@
 	width: 20%;
 }
 
-.table-bordered>tbody>tr.bottom>th, 
-.table-bordered>tbody>tr.bottom>td{
+/* 2,7,10,15 */
+#eventTable tr:nth-child(8n+2)>td,
+#eventTable tr:nth-child(8n+7)>td{
 	border-bottom: thin solid #999;
 }
 
-table#eventTable td:nth-child(odd){
+table#eventTable td:nth-child(even){
 	background-color: #fbfbfb;
+}
+
+.table-bordered>tbody>tr>td:nth-child(1){
+	font-weight: bold;
 }
 
 .bolus{

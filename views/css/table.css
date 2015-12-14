@@ -2,22 +2,35 @@ tbody>tr:nth-child(5n+1)>td:nth-child(1){
 	font-weight: bold;
 }
 
-tbody>tr:nth-child(5n+2){
+tbody>tr:nth-child(5n+2)>td:nth-child(1){
 	background-color: #ffffcc;
 }
 
-tbody>tr:nth-child(5n+3){
+tbody>tr:nth-child(5n+3)>td:nth-child(1){
 	background-color: #f6e9fc;
 }
 
-tbody>tr:nth-child(5n+4){
+tbody>tr:nth-child(5n+4)>td:nth-child(1){
 	background-color: #e9fbd0;
 }
 
-tbody>tr:nth-child(5n+5){
+tbody>tr:nth-child(5n+5)>td:nth-child(1){
 	background-color: #ebfaeb;
 }
 
-tbody>tr:nth-child(5n+5){
+tbody>tr:nth-child(5n),tbody>tr:nth-child(5n+1){
 	border-bottom: thin solid #999;
+}
+
+tbody>tr:nth-child(5n+3),tbody>tr:nth-child(5n+5){
+	background-color: #f9f9f9;
+}
+
+#tablebodydiv{
+	margin: 1px;
+	overflow-x: auto;
+}
+
+.table{
+	margin-bottom: -1px;
 }

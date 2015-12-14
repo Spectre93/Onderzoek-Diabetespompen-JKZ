@@ -12,27 +12,33 @@ block head
 		
 block body
 	.container
-		.form-inline
-			.form-group
-				input.form-control.input-sm(type='text' id='inputDatePicker').datepicker
-			button.btn.btn-primary.btn-sm(type='button' onclick='updateChart()') Go!
-		script.
-			$('.datepicker').datepicker({
-				autoclose: true,
-				format: 'dd-mm-yyyy',
-				startDate: '#{startDate}',
-				endDate: '#{endDate}',
-				disableTouchKeyboard: true,
-				todayHighlight: true,
-				weekStart: 1
-			});
-		#chartdiv
-		#statisticsdiv
-			table#graphTable.table.table-bordered.table-striped
-				tbody#statTableBody
-			#donutdiv
-		#boluseventsdiv
-			table#eventTable.table.table-bordered
-				thead
-					th.bg-primary(colspan='11') Bolus Events	
-				tbody#eventTableBody
+		.row
+			.col-md-5.col-xs-12
+				input.col-xs-10.col-sm-3.col-md-7.input-sm(type='text' id='inputDatePicker').datepicker
+				button.col-xs-2.col-sm-1.col-md-2.btn.btn-primary.btn-sm(type='button' onclick='updateChart()') Go!
+			script.
+				$('.datepicker').datepicker({
+					autoclose: true,
+					format: 'dd-mm-yyyy',
+					startDate: '#{startDate}',
+					endDate: '#{endDate}',
+					disableTouchKeyboard: true,
+					todayHighlight: true,
+					weekStart: 1
+				});
+		.row
+			.col-md-8.col-xs-12
+				#chartdiv
+			.col-md-4
+				#statsrow.row
+					#statisticsdiv.col-xs-12.col-sm-6.col-md-12
+						table#graphTable.table.table-bordered.table-striped
+							tbody#statTableBody
+					#donutdiv.col-xs-12.col-sm-6.col-md-12
+		.row
+			.col-md-12
+				#boluseventsdiv
+					table#eventTable.table.table-bordered
+						thead
+							th.bg-primary(colspan='11') Bolus Events	
+						tbody#eventTableBody
