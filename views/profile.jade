@@ -31,17 +31,19 @@ block body
 						p
 							strong Naam: #{user.firstname} #{user.lastname} <br />
 							strong E-mail: #{user.email} <br />
-							strong Bestanden: #{user.uploadedFiles}
+							strong Bestanden:<br />
+							for file in userFiles
+								| #[a(href='/file/#{file._id}') #{file.original_name}] (#{file.timestamp}) <br />
 					form(action="../authorise/user", method="post")
 						.form-group
 							label.sr-only Email
 							input.form-control(type="email", name="email", placeholder="E-mail")
-						button.btn.btn-default(type="submit", style="margin-bottom:15px;") Authoriseer account
+						button.btn.btn-sm.btn-default(type="submit", style="margin-bottom:15px;") Autoriseer account
 					form(action="../unauthorise/user", method="post")
 						.form-group
 							label.sr-only Email
 							input.form-control(type="email", name="email", placeholder="E-mail")
-						button.btn.btn-default(type="submit", style="margin-bottom:15px;") Deauthoriseer account
-					a.btn.btn-default(role="button", href="./profile/users", style="margin-bottom:15px;") Gebruikers beheren
+						button.btn.btn-sm.btn-default(type="submit", style="margin-bottom:15px;") Deautoriseer account
+					a.btn.btn-sm.btn-default(role="button", href="./profile/users", style="margin-bottom:15px;") Gebruikers beheren
 					form(action="../delete/user/#{user._id}", method="post")
-						button.btn.btn-danger(type="submit") Verwijder account
+						button.btn.btn-sm.btn-danger(type="submit") Verwijder account

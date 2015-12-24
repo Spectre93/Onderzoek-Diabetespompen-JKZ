@@ -27,10 +27,11 @@ block body
                 p #{msg}
       .col-sm-6.col-sm-offset-3
         .row
-          for result in users
-            .bs-component
-              .list-group
-                span.list-group-item(href='#')
-                  h4.list-group-item-heading #[a(href='/user/#{result._id}') #{result.firstname} #{result.lastname}]
-                  p.list-group-item-text
-                    | E-mail: #[a(href='mailto:#{result.email}') #{result.email}]
+          p
+            h4 Bestanden:
+            for file in files
+              .bs-component
+                .list-group
+                  span.list-group-item
+                    h4.list-group-item-heading #[a(href='/file/#{file._id}') #{file.original_name}]
+                    p.list-group-item-text Geüpload #{file.timestamp}

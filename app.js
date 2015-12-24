@@ -11,7 +11,10 @@ var app = express();
 var configDB = require('./config/database.js');
 
 try {
-	mongoose.connect(configDB.url);
+	// Database connect options
+	var options = { replset: { socketOptions: { connectTimeoutMS : 1000 * 30 }}};
+
+	mongoose.connect(configDB.url, configDB.options);
 
 	var db = mongoose.connection;
 	db.on("error", console.error.bind(console, "connection error:"));

@@ -41,12 +41,37 @@ module.exports = function(passport) {
     }));
 
     router.get('/profile', isLoggedIn, function(req, res) {
-        res.render('profile', {
-            title: "Profiel",
-            header: "Profiel van " + req.user.firstname + " " + req.user.lastname,
-            user : req.user, // get the user out of session and pass to template
-            readFile: req.session.file,
-            messages: req.flash()
+        var fileModel = req.db.model("Files");
+        var userFiles;
+
+        fileModel.find( { "user_id": req.user._id }, function(err, files) {
+            if (err) res.status(500).send(err);
+
+            for (var i = 0; i < files.length; i++) {
+                var curDate, date = new Date(files[i].time_uploaded);
+
+                var day = date.getUTCDate();
+                var month = date.getUTCMonth() + 1;
+                var year = date.getUTCFullYear();
+                var hours = "0" + date.getUTCHours();
+                var minutes = "0" + date.getUTCMinutes();
+                var seconds = "0" + date.getUTCSeconds();
+
+                curDate = day + "-" + month + "-" + year + " " + hours.substr(-2) + ":" + minutes.substr(-2) + ":" + seconds.substr(-2);
+
+                files[i].timestamp = curDate;
+            }
+            
+            userFiles = files;
+
+            res.render('profile', {
+                title: "Profiel",
+                header: "Profiel van " + req.user.firstname + " " + req.user.lastname,
+                user : req.user, // get the user out of session and pass to template
+                readFile: req.session.file,
+                userFiles: userFiles,
+                messages: req.flash()
+            });
         });
     });
     
@@ -55,9 +80,47 @@ module.exports = function(passport) {
         res.redirect('/');
     });
 
-    //////////////////////////////////////////////////////////////////////////
-    // Current user management -- Deleting, updating, password resets, etc. //
-    //////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////
+    // Viewing user profiles and their info //
+    //////////////////////////////////////////
+    router.get("/user/:id", isLoggedIn, function(req, res) {
+        var userModel = req.db.model("User"),
+            fileModel = req.db.model("Files"),
+            id = req.params.id;
+
+        userModel.findById(id, function(err, user) {
+            if (user.accessFrom.indexOf(req.user.email) > -1) {
+                fileModel.find( { "user_id": id }, function(err, files) {
+                    for (var i = 0; i < files.length; i++) {
+                        var curDate, date = new Date(files[i].time_uploaded);
+
+                        var day = date.getUTCDate();
+                        var month = date.getUTCMonth() + 1;
+                        var year = date.getUTCFullYear();
+                        var hours = "0" + date.getUTCHours();
+                        var minutes = "0" + date.getUTCMinutes();
+                        var seconds = "0" + date.getUTCSeconds();
+
+                        curDate = day + "-" + month + "-" + year + " " + hours.substr(-2) + ":" + minutes.substr(-2) + ":" + seconds.substr(-2);
+
+                        files[i].timestamp = curDate;
+                    }
+
+                    res.render("user", {
+                        title: user.firstname + " " + user.lastname,
+                        header: "Gebruiker " + user.firstname + " " + user.lastname,
+                        resultUser: user,
+                        files: files,
+                        user: req.user
+                    });
+                });
+            } else {
+                req.flash("error", "Je hebt geen toegang tot dit account.");
+                res.redirect("/profile/users");
+            }
+        });
+    });
+
     router.get("/profile/users", isLoggedIn, function(req, res) {
         var userModel = req.db.model("User");
 
@@ -68,7 +131,8 @@ module.exports = function(passport) {
                     title: "Gebruikers",
                     header: "Gebruikers",
                     user: req.user,
-                    users: users
+                    users: users,
+                    message: req.flash()
                 });
             }
         });
@@ -90,6 +154,10 @@ module.exports = function(passport) {
             }
         });
     });
+
+    //////////////////////////////////////////////////////////////////////////
+    // Current user management -- Deleting, updating, password resets, etc. //
+    //////////////////////////////////////////////////////////////////////////
 
     router.post("/delete/user/:id", isLoggedIn, function(req, res) {
         // delete a user (by id)
@@ -161,7 +229,8 @@ module.exports = function(passport) {
 function isLoggedIn(req, res, next) {
     if (req.isAuthenticated())
         return next();
-
-    req.flash('error', 'Je moet ingelogd zijn om dit te doen.');
-    res.redirect('/login');
+    else {
+        req.flash('error', 'Je moet ingelogd zijn om dit te doen.');
+        res.redirect('/login');
+    }
 }

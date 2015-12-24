@@ -5,25 +5,223 @@ var parseString = require('xml2js').parseString,
     baby = require('babyparse'),
     Files = require('../../models/files');
 
-var newFile = new Files();
+exports.readFile = function(req, path) {
+
+    //Read the file and cut away the bits we don't need so it can be parsed
+    var file = fs.readFileSync(path).toString();
+    file = file.substring(file.indexOf(";-------")+11, file.indexOf("-------;", file.indexOf(";-------"))-3).replace(/,/g, '.');
+
+    //Parse the file, returns JSON-object
+    var parseResults = baby.parse(file,{    
+        header: true,
+        fastMode: true,     //Speeds up parsing for files that contain no quotes.
+        skipEmptyLines: true,
+        dynamicTyping: true,
+        delimiter: ";"
+    });
+    
+    //Sort the results.data array
+    parseResults.data = parseResults.data.sort(function (a, b) {
+        if (a.Date > b.Date)
+            return 1;
+        else if (a.Date < b.Date)
+            return -1;
+        
+        //When the dates are equal, check the times
+        if(a.Time > b.Time)
+            return 1;
+        else if(a.Time < b.Time)
+            return -1;
+        
+        //If the times are equal too, check for any of these
+        if(a.Suspend || a["BWZ Estimate (U)"] || a["Temp Basal Type"])
+            return -1;
+        else 
+            return 1;
+    });
+    
+    var seen = [];
+    //Loop through data and combine certain events
+    var combinedData = [];
+    for(var i = 0; i < parseResults.data.length; i++){
+        var currentEntry = parseResults.data[i];
+        var resultItem = {};
+                
+        resultItem.date = currentEntry.Date;
+        resultItem.time = currentEntry.Time;
+        resultItem.timestamp = resultItem.date + " " + resultItem.time;
+        
+        //If there's a reading, add it to the new item
+        var bgReading = currentEntry["BG Reading (mmol/L)"];
+        if(bgReading !== "")
+            resultItem.bgReading = bgReading;
+        
+        //If there's basal rate change, add it to the new item
+        var basalRate = currentEntry["Basal Rate (U/h)"];
+        if(basalRate !== "")                
+            resultItem.basalRate = basalRate;
+
+        //If there's a bolus entry, add it to the new item
+        var bolusType = currentEntry["Bolus Type"];
+        if(bolusType !== "" && seen.indexOf(i) === -1){
+            var bolusVolumeSelected = currentEntry["Bolus Volume Selected (U)"];
+            var bolusVolumeDelivered = currentEntry["Bolus Volume Delivered (U)"];
+            
+            //If it's normal bolus, just add it to the new item
+            if(bolusType == "Normal"){
+                resultItem.bolusType = bolusType;
+                resultItem.bolusVolumeSelected = bolusVolumeSelected;
+                resultItem.bolusVolumeDelivered = bolusVolumeDelivered;
+            }
+            //If it's a Dual bolus, put the normal part in the new item
+            else if(bolusType == "Dual (normal part)"){
+                resultItem.bolusType = "Dual";
+                resultItem.bolusVolumeSelected = bolusVolumeSelected;
+                resultItem.bolusVolumeDelivered = bolusVolumeDelivered;
+                
+                //Look for the square part
+                for(var j = 0; j < 10; j++){
+                    if(i + j < parseResults.data.length){
+                        var bolusDuration = parseResults.data[i+j]["Programmed Bolus Duration (h:mm:ss)"];
+                        if(bolusDuration !== ""){
+                            //And add that to the item as well
+                            resultItem.squareVolumeSelected = parseResults.data[i+j]["Bolus Volume Selected (U)"];
+                            resultItem.squareVolumeDelivered = parseResults.data[i+j]["Bolus Volume Delivered (U)"];
+                            resultItem.bolusDuration = bolusDuration;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        
+        //If there's a rewind, note it as '1' in the item
+        var rewind = currentEntry.Rewind;
+        if(rewind !== ""){
+            resultItem.rewind = 1;
+            
+            //Look for the Primes it came with
+            for(var j = 0; j < 10; j++){
+                if(i + j < parseResults.data.length){
+                    var primeType = parseResults.data[i+j]["Prime Type"];
+                    if(primeType == "Manual"){
+                        resultItem.primeType = primeType;
+                        resultItem.manualPrimeVolumeDelivered = parseResults.data[i+j]["Prime Volume Delivered (U)"];
+                        //A Fixed one may come together with a manual one, always after manual
+                        for(var k = 0; k < 10; k++){
+                            if(i + j + k < parseResults.data.length){
+                                var primeType = parseResults.data[i+j+k]["Prime Type"];
+                                if(primeType == "Manual")   //If different prime is found, abort
+                                    break;
+                                if(primeType == "Fixed"){
+                                    resultItem.primeType = "Both";
+                                    resultItem.fixedPrimeVolumeDelivered = parseResults.data[i+j+k]["Prime Volume Delivered (U)"];
+                                    break;
+                                }
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+        
+        //Alarms are added too
+        var alarm = currentEntry.Alarm;
+        if(alarm !== "")
+            resultItem.alarm = alarm;
+            
+        //If there's a BWZ entry, there will be more. Add them all.
+        var bolusVolumeEstimate = currentEntry["BWZ Estimate (U)"];
+        if(bolusVolumeEstimate !== ""){
+            resultItem.bolusVolumeEstimate = bolusVolumeEstimate;
+            resultItem.bwzHighTarget = currentEntry["BWZ Target High BG (mmol/L)"];
+            resultItem.bwzLowTarget = currentEntry["BWZ Target Low BG (mmol/L)"];
+            resultItem.bwzCarbRatio = currentEntry["BWZ Carb Ratio (g/U)"];
+            resultItem.bwzInsulinSensitivity = currentEntry["BWZ Insulin Sensitivity (mmol/L/U)"];
+            resultItem.bwzCarbInput = currentEntry["BWZ Carb Input (grams)"];
+            resultItem.bwzBgInput = currentEntry["BWZ BG Input (mmol/L)"];
+            resultItem.bwzCorrectionEstimate = currentEntry["BWZ Correction Estimate (U)"];
+            resultItem.bwzFoodEstimate = currentEntry["BWZ Food Estimate (U)"];
+            resultItem.bwzActiveInsulin = currentEntry["BWZ Active Insulin (U)"];
+            for(var j = 0; j < 4; j++){
+                if(i + j < parseResults.data.length){
+                    var bolusType = parseResults.data[i+j]["Bolus Type"];
+                    if(bolusType != ""){
+                        var bolusVolumeSelected = parseResults.data[i+j]["Bolus Volume Selected (U)"];
+                        var bolusVolumeDelivered = parseResults.data[i+j]["Bolus Volume Delivered (U)"];
+                        
+                        seen.push(i+j);
+                        //If it's normal bolus, just add it to the new item
+                        if(bolusType == "Normal"){
+                            resultItem.bolusType = bolusType;
+                            resultItem.bolusVolumeSelected = bolusVolumeSelected;
+                            resultItem.bolusVolumeDelivered = bolusVolumeDelivered;
+                        }
+                        //If it's a Dual bolus, put the normal part in the new item
+                        else if(bolusType == "Dual (normal part)"){
+                            resultItem.bolusType = "Dual";
+                            resultItem.bolusVolumeSelected = bolusVolumeSelected;
+                            resultItem.bolusVolumeDelivered = bolusVolumeDelivered;
+                            
+                            
+                        //Look for the square part
+                            for(var k = 0; k < 10; k++){
+                                if(i + j + k < parseResults.data.length){
+                                    var bolusDuration = parseResults.data[i+j+k]["Programmed Bolus Duration (h:mm:ss)"];
+                                    if(bolusDuration != ""){
+                                        //And add that to the item as well
+                                        resultItem.squareVolumeSelected = parseResults.data[i+j+k]["Bolus Volume Selected (U)"];
+                                        resultItem.squareVolumeDelivered = parseResults.data[i+j+k]["Bolus Volume Delivered (U)"];
+                                        resultItem.bolusDuration = bolusDuration;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+            
+        // var sensorCalibration = currentEntry["Sensor Calibration BG (mmol/L)"];
+        // if(sensorCalibration != "")
+            // resultItem.sensorCalibration = sensorCalibration;
+    
+        //Add the sensor readings
+        var sensorBG = currentEntry["Sensor Glucose (mmol/L)"];
+        if(sensorBG !== "")
+            resultItem.sensorBG = sensorBG;
+        
+        //If the object contains more than just time and date and a timestamp, push it
+        if(Object.keys(resultItem).length > 2){
+            combinedData.push(resultItem);
+        }
+    }
+    req.session.file = combinedData;
+    req.session.filetype = "application/vnd.ms-excel";
+}
 
 exports.prepareFile = function(req, res) {
     //##### Paradigm Veo #####              
 
-    var filesModel = req.db.model("Files");
+    var newFile = new Files(),
+        fileModel = req.db.model("Files"),
+        currentTime = Date.now();
         
     var path = req.file.path;
     //Read the file and cut away the bits we don't need so it can be parsed
     var file = fs.readFileSync(path).toString();
     file = file.substring(file.indexOf(";-------")+11, file.indexOf("-------;", file.indexOf(";-------"))-3).replace(/,/g, '.');
-    
-    fs.rename(req.file.path, req.file.destination + '\\' + req.user._id + '\\' + Date.now() + '.csv', function(err) {
+
+    fs.rename(req.file.path, req.file.destination + '\\' + req.user._id + '\\' + currentTime + '.csv', function(err) {
         if ( err ) console.log('ERROR: ' + err);
     });
 
+    newFile.time_uploaded = currentTime;
     newFile.user_id = req.user._id;
     newFile.original_name = req.file.originalname;
-    newFile.path = req.file.destination + '/' + req.user._id + '/' + Date.now() + '.csv';
+    newFile.path = req.file.destination + '/' + req.user._id + '/' + currentTime + '.csv';
 
     newFile.save(function(err) {
         if (err) console.log(err);

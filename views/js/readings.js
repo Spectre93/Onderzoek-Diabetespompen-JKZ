@@ -35,7 +35,10 @@ $(function () {
 						}
 					}
 					indexGlucose--;
-					result += '<td data-ids=' + curIDs + '>' + value + '</td>';
+					if (curIDs.length > 1)
+						result += '<td data-ids=' + curIDs + '>' + value + '<sup style="color:red">' + curIDs.length + '</sup></td>';
+					else
+						result += '<td data-ids=' + curIDs + '>' + value + '</td>';
 				} else
 					result += '<td></td>';
 			}
@@ -67,7 +70,10 @@ $(function () {
 						}
 					}
 					indexCarbs--;
-					result += '<td data-ids=' + curIDs + '>' + value + '</td>';
+					if (curIDs.length > 1)
+						result += '<td data-ids=' + curIDs + '>' + value + '<sup style="color:red">' + curIDs.length + '</sup></td>';
+					else
+						result += '<td data-ids=' + curIDs + '>' + value + '</td>';
 				} else
 					result += '<td></td>';
 			}
@@ -99,7 +105,10 @@ $(function () {
 						}
 					}
 					indexBolus--;
-					result += '<td data-ids=' + curIDs + '>' + value + '</td>';
+					if (curIDs.length > 1)
+						result += '<td data-ids=' + curIDs + '>' + value + '<sup style="color:red">' + curIDs.length + '</sup></td>';
+					else
+						result += '<td data-ids=' + curIDs + '>' + value + '</td>';
 				} else
 					result += '<td></td>';
 			}
@@ -132,7 +141,10 @@ $(function () {
 						}
 					}
 					indexBasal--;
-					result += '<td data-ids=' + curIDs + '>' + value + '</td>';
+					if (curIDs.length > 1)
+						result += '<td data-ids=' + curIDs + '>' + value + '<sup style="color:red">' + curIDs.length + '</sup></td>';
+					else
+						result += '<td data-ids=' + curIDs + '>' + value + '</td>';
 				}else
 					result += '<td></td>';
 			}
@@ -140,9 +152,6 @@ $(function () {
 			result += '</tr>';
 
 			$('#readingsTable > tbody:last-child').append(result);
-
-
-			//console.log(jsonData[i]);
 		}
 	});
 });

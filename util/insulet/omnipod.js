@@ -5,19 +5,42 @@ var parseString = require('xml2js').parseString,
     Files = require('../../models/files'),
     us = require('underscore');
 
-var newFile = new Files();
+exports.readFile = function(req, path) {
+    var json;
+
+    try {
+        var fileData = fs.readFileSync(path, 'ascii');
+
+        var parser = new xml2js.Parser();
+        parser.parseString(fileData.substring(0, fileData.length), function(err, result) {
+            json = JSON.parse(JSON.stringify(result, null, 3));
+        });
+
+        req.session.file = json.RECORDS.RECORD;
+        req.session.filetype = "text/xml";
+
+        console.log("File '" + path + "' was successfully read. Size is " + json.RECORDS.RECORD.length + " \n");
+    } catch (ex) {
+        console.log("Unable to read file '" + path + "'.");
+        console.log(ex);
+    }
+}
 
 exports.prepareFile = function(req, res) {
 	//var filesModel = req.db.model("Files");
-	var json;
+	var json, 
+        newFile = new Files(),
+        fileModel = req.db.model("Files"),
+        currentTime = Date.now();
 
-    fs.rename(req.file.path, req.file.destination + '\\' + req.user._id + '\\' + Date.now() + '.xml', function(err) {
+    fs.rename(req.file.path, req.file.destination + '\\' + req.user._id + '\\' + currentTime + '.xml', function(err) {
         if ( err ) console.log('ERROR: ' + err);
     });
 
+    newFile.time_uploaded = currentTime;
     newFile.user_id = req.user._id;
     newFile.original_name = req.file.originalname;
-    newFile.path = req.file.destination + '/' + req.user._id + '/' + Date.now() + '.xml';
+    newFile.path = req.file.destination + '/' + req.user._id + '/' + currentTime + '.xml';
 
     newFile.save(function(err) {
     	if (err) console.log(err);
@@ -145,6 +168,8 @@ exports.getReadings = function(req) {
     var json = req.session.file;
     var curDate, curCat, curVal, curHour, curDay;
     var resultFile = [];
+
+    console.log("getReadings");
 
     json.sort(function(a, b) {
         return (b.ROW[0].$.DATEEVENT.replace(",", ".") - a.ROW[0].$.DATEEVENT.replace(",", "."));

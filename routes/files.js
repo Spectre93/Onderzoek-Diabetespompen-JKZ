@@ -4,6 +4,9 @@ var express = require("express"),
     us = require('underscore'),
     multer = require('multer'),
     mkdirp = require('mkdirp'),
+    parseString = require('xml2js').parseString,
+    fs = require('fs'),
+    xml2js = require('xml2js'),
     router = express.Router();
 
 var uploading = multer({
@@ -24,7 +27,6 @@ module.exports = function() {
     });
     
     router.post('/upload', uploading.single('inputFile'), function(req, res) {
-
         if (typeof req.file === "undefined") {
             req.flash("warning", "Kies een bestand om te uploaden.");
             res.redirect("/fileupload");
@@ -76,6 +78,25 @@ module.exports = function() {
         res.send(omniPod.getReadings(req));
     });
 
+    router.get("/file/:id", isLoggedIn, function(req, res) {
+        var id = req.params.id,
+            fileModel = req.db.model("Files");
+
+        fileModel.findById(id, function(err, file) {
+            if (err) res.send(err);
+
+            if (file.path.substr(file.path.length-3) === "xml") {
+                omniPod.readFile(req, file.path);
+                res.redirect("/readings");
+            } else if (file.path.substr(file.path.length-3) === "csv") {
+                paradigmVeo.readFile(req, file.path);
+                res.redirect("/graph");
+            } else {
+                req.flash("error", "Dit is geen geldig bestandsformaat. Hoe is het sowieso gelukt om dit te uploaden?");
+                res.redirect("/profile/users");
+            }
+        });
+    });
 
     ////////////////////
     // GET table page //
@@ -83,7 +104,7 @@ module.exports = function() {
     router.get('/readings', fileActive, function(req, res) {
         if (req.session.filetype === 'text/xml') {
             var resultFile = omniPod.getReadings(req);
-
+            
             res.render('readings', {
                 title: 'Tabel OmniPod',
                 header: 'Tabel',
@@ -118,7 +139,7 @@ module.exports = function() {
                 readFile: req.session.file,
                 user: req.user
             });
-        } else {
+        } else if (req.session.filetype === "application/vnd.ms-excel") {
             // Do we also handle this in a separate file, returning the start and end dates?
             function dateToString (date){
                 return date.getUTCDate() + "-" + (date.getUTCMonth()+1) + "-" + date.getUTCFullYear();
@@ -132,6 +153,9 @@ module.exports = function() {
                 startDate: dateToString(new Date(req.session.file[0].date + " UTC+0000")),
                 endDate: dateToString(new Date((req.session.file[req.session.file.length-1].date + " UTC+0000")))
             });
+        } else {
+            req.flash("error", "Dit is een ongeldig bestandsformaat. Hoe is het sowieso gelukt om dit te uploaden?");
+            res.redirect("/profile");
         }
 
     });

@@ -4,8 +4,9 @@ var mongoose = require('mongoose');
 // Files schema definition: properties per user //
 /////////////////////////////////////////////////
 var filesSchema = mongoose.Schema({
-	userId: { type: String, required: true },
-	originalName: { type: String, required: true },
+	time_uploaded: { type: Date, required: true },
+	user_id: { type: String, required: true },
+	original_name: { type: String, required: true },
     path: { type: String, required: true }
 });
 
