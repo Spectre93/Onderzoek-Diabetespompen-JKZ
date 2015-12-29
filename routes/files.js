@@ -16,7 +16,7 @@ var uploading = multer({
 module.exports = function() {
 	"use strict";
     
-	router.get('/fileupload', isLoggedIn, function(req, res) {
+	router.get('/fileupload', function(req, res) {
         res.render("file-upload", {
             title: "Upload bestand",
             header: "Bestand uploaden",
@@ -35,9 +35,11 @@ module.exports = function() {
         req.session.filename = req.file.originalname;
         req.session.filetype = req.file.mimetype;
 
-        mkdirp(req.file.destination + '\\' + req.user._id, function(err) {
-            if (err) console.log(err);
-        });
+        if (req.isAuthenticated()) {
+            mkdirp(req.file.destination + '\\' + req.user._id, function(err) {
+                if (err) console.log(err);
+            });
+        }
 
         if (req.file.mimetype === "text/xml") {
             omniPod.prepareFile(req, res);

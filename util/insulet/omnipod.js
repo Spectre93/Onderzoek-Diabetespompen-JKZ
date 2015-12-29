@@ -33,19 +33,22 @@ exports.prepareFile = function(req, res) {
         fileModel = req.db.model("Files"),
         currentTime = Date.now();
 
-    fs.rename(req.file.path, req.file.destination + '\\' + req.user._id + '\\' + currentTime + '.xml', function(err) {
-        if ( err ) console.log('ERROR: ' + err);
-    });
 
-    newFile.time_uploaded = currentTime;
-    newFile.user_id = req.user._id;
-    newFile.original_name = req.file.originalname;
-    newFile.path = req.file.destination + '/' + req.user._id + '/' + currentTime + '.xml';
+    if (req.isAuthenticated()) {
+        fs.rename(req.file.path, req.file.destination + '\\' + req.user._id + '\\' + currentTime + '.xml', function(err) {
+            if ( err ) console.log('ERROR: ' + err);
+        });
 
-    newFile.save(function(err) {
-    	if (err) console.log(err);
-    	else console.log("SAVED");
-    });
+        newFile.time_uploaded = currentTime;
+        newFile.user_id = req.user._id;
+        newFile.original_name = req.file.originalname;
+        newFile.path = req.file.destination + '/' + req.user._id + '/' + currentTime + '.xml';
+
+        newFile.save(function(err) {
+        	if (err) console.log(err);
+        	else console.log("SAVED");
+        });
+    }
 
     try {
         var fileData = fs.readFileSync(req.file.originalname, 'ascii');

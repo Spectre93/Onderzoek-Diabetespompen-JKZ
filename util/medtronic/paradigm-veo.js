@@ -214,19 +214,21 @@ exports.prepareFile = function(req, res) {
     var file = fs.readFileSync(path).toString();
     file = file.substring(file.indexOf(";-------")+11, file.indexOf("-------;", file.indexOf(";-------"))-3).replace(/,/g, '.');
 
-    fs.rename(req.file.path, req.file.destination + '\\' + req.user._id + '\\' + currentTime + '.csv', function(err) {
-        if ( err ) console.log('ERROR: ' + err);
-    });
+    if (req.isAuthenticated()) {
+        fs.rename(req.file.path, req.file.destination + '\\' + req.user._id + '\\' + currentTime + '.csv', function(err) {
+            if ( err ) console.log('ERROR: ' + err);
+        });
 
-    newFile.time_uploaded = currentTime;
-    newFile.user_id = req.user._id;
-    newFile.original_name = req.file.originalname;
-    newFile.path = req.file.destination + '/' + req.user._id + '/' + currentTime + '.csv';
+        newFile.time_uploaded = currentTime;
+        newFile.user_id = req.user._id;
+        newFile.original_name = req.file.originalname;
+        newFile.path = req.file.destination + '/' + req.user._id + '/' + currentTime + '.csv';
 
-    newFile.save(function(err) {
-        if (err) console.log(err);
-        else console.log("SAVED");
-    });
+        newFile.save(function(err) {
+            if (err) console.log(err);
+            else console.log("SAVED");
+        });
+    }
 
     //Parse the file, returns JSON-object
     var parseResults = baby.parse(file,{    
