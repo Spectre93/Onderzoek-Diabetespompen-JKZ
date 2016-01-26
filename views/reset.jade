@@ -27,16 +27,11 @@ block body
 								p #{msg}
 			.col-sm-6.col-sm-offset-3
 				row
-					form(action="/login", method="post")
-						.form-group
-							label(for="email") E-mail
-							input#email.form-control(type="email", name="email")
+					form(action="/reset/#{resetUser.resetPasswordToken}", method="post")
 						.form-group
 							label(for="password") Wachtwoord
-							input#password.form-control(type="password", name="password")
-						button.btn.btn-primary(type="submit") Inloggen
-					hr
-					p(style="white-space:pre-wrap")
-						|Nog geen account? #[a(href="/signup") Registreer] er nu één
-						br
-						|Wachtwoord vergeten? #[a(href="/resetpassword") Bewerk] je wachtwoord
+							input#password.form-control(type="password", name="Wachtwoord", placeholder='Wachtwoord')
+						.form-group
+							label(for="passwordConfirm") Wachtwoord
+							input#passwordConfirm.form-control(type="password", name="confirm", placeholder='Wachtwoord bevestigen')
+						button.btn.btn-primary(type="submit") Wachtwoord aanpassen

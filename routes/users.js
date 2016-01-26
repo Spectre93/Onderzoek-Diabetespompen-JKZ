@@ -1,5 +1,19 @@
 var express = require("express"),
-    router = express.Router();
+    router = express.Router(),
+    verificationToken = require('../models/verificationToken'),
+    User = require('../models/user'),
+    bCrypt = require('bcrypt-nodejs'),
+    crypto = require('crypto'),
+    nodemailer = require('nodemailer'),
+    async = require('async');
+
+var smtpTransport = nodemailer.createTransport({
+    service: "Hotmail",
+    auth: {
+        user: "bijleshhs@outlook.com",
+        pass: "BijlesGeven2015"
+    }
+});
 
 module.exports = function(passport) {
 	"use strict";
@@ -159,6 +173,136 @@ module.exports = function(passport) {
     // Current user management -- Deleting, updating, password resets, etc. //
     //////////////////////////////////////////////////////////////////////////
 
+    router.get("/verify/:token", function (req, res, next) {
+        var token = req.params.token;
+        verifyUser(req, token, function(err) {
+            if (err) return res.send("Verificatie mislukt");
+            res.send("Verificatie gelukt");
+        });
+    });
+
+    router.get("/resetpassword", function(req,res) {
+        res.render("reset-password", {
+            user: req.user,
+            title: "Verander wachtwoord",
+            header: "Verander wachtwoord",
+            messages: req.flash()
+        });
+    });
+
+    router.get("/reset/:token", function(req,res) {
+        User.findOne({
+            resetPasswordToken: req.params.token,
+            resetPasswordExpires: {
+                $gt: Date.now()
+            }
+        }, function(err, user) {
+            if (!user) {
+                req.flash('warning', 'Deze code voor het aanpassen van je wachtwoord bestaat niet of is verlopen.')
+                return res.redirect('/resetpassword')
+            }
+            res.render('reset', {
+                title: 'Wachtwoord aanpassen - bevestiging',
+                user: req.user,         // Using req.user separately from the user object. User is used to determine if you're logged in, which would always seem to be the case if we used user there.
+                resetUser: user,            // Use the user object from the search above to actually pass the user's data to the page.
+                header: 'Wachtwoord bevestigen'
+            });
+        });
+    });
+
+    router.post('/resetpassword', function(req, res) {
+        async.waterfall([
+            function(done) {
+                crypto.randomBytes(20, function(err, buf) {
+                    var token = buf.toString('hex');
+                    done(err, token);
+                })
+            },
+            function(token, done) {
+                User.findOne({
+                    email: req.body.email
+                }, function(err, user) {
+                    if (!user) {
+                        req.flash('warning', 'Er bestaat geen account met dat e-mailadres.');
+                        return res.redirect('/resetpassword');
+                    }
+                    console.log(user);
+                    user.resetPasswordToken = token;
+                    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+                    req.user = user;
+                    console.log(user);
+
+                    user.save(function(err) {
+                        done(err, token, user);
+                    });
+                });
+            },
+            function(token, user, done) {
+                var mailOptions = {
+                    to: user.email,
+                    from: 'Diabetesteam Haga <bijleshhs@outlook.com>',
+                    subject: 'Aanpassen wachtwoord hagadiabetes.nl',
+                    text: 'Je ontvangt deze mail omdat jij (of iemand anders) een verzoek heeft gedaan om je wachtwoord aan te passen.\nKlik op onderstaande link, of plak hem in je browser om het proces te voltooien:\n\nhttp://' + req.headers.host + '/reset/' + token + '\n\nAls je niet om een reset van je wachtwoord hebt gevraagd, negeer deze mail dan. Je wachtwoord zal dan niet veranderen.\n'
+                };
+                smtpTransport.sendMail(mailOptions, function(err) {
+                    req.flash('info', 'Er is een e-mail verstuurd naar ' + user.email +
+                        ' met verdere instructies. Je kunt dit tabblad nu sluiten.');
+                    done(err, 'done');
+                });
+            }
+        ], function(err) {
+            if (err) {
+                console.log(err);
+                req.flash('error', 'Er is iets fout gegaan bij het verwerken van dit formulier.');
+            }
+            res.redirect('/resetpassword');
+        })
+    })
+
+    router.post('/reset/:token', function(req, res) {
+        async.waterfall([
+            function(done) {
+                User.findOne({
+                    resetPasswordToken: req.params.token,
+                    resetPasswordExpires: {
+                        $gt: Date.now()
+                    }
+                }, function(err, user) {
+                    if (!user) {
+                        req.flash('error', 'De code voor het aanpassen van je wachtwoord is ongeldig of verlopen.');
+                        return res.redirect('back');
+                    }
+
+                    user.password = createHash(req.body.password);
+                    user.resetPasswordToken = undefined;
+                    user.resetPasswordExpires = undefined;
+
+                    user.save(function(err) {
+                        req.logIn(user, function(err) {
+                            done(err, user)
+                        });
+                    });
+                });
+            },
+            function(user, done) {
+                var mailOptions = {
+                    to: user.email,
+                    from: 'Diabetesteam Haga <bijleshhs@outlook.com>',
+                    subject: 'Je wachtwoord is aangepast',
+                    text: 'Hallo,\n\n' +
+                        'Dit is een bevestiging dat het wachtwoord voor je account bij hagadiabetes.nl met mailadres ' + user.email +
+                        ' zojuist is veranderd.\n'
+                };
+                smtpTransport.sendMail(mailOptions, function(err) {
+                    req.flash('success', 'Succes! Je wachtwoord is veranderd en je bent ingelogd.')
+                    done(err)
+                });
+            }
+        ], function(err) {
+            res.redirect('/profile')
+        });
+    });
+
     router.post("/delete/user/:id", isLoggedIn, function(req, res) {
         // delete a user (by id)
         var model = req.db.model("User"),
@@ -224,7 +368,7 @@ module.exports = function(passport) {
     });
 
 	return router;
-}
+};
 
 function isLoggedIn(req, res, next) {
     if (req.isAuthenticated())
@@ -234,3 +378,24 @@ function isLoggedIn(req, res, next) {
         res.redirect('/login');
     }
 }
+
+function verifyUser(req, token, done) {
+    var verificationTokenModel = req.db.model('verificationToken'),
+        userModel = req.db.model('User');
+
+    verificationTokenModel.findOne({token: token}, function (err, doc){
+        if (err) return done(err);
+        userModel.findById( doc._userId, function (err, user) {
+            if (err) return done(err);
+            user.verified = true;
+            user.save(function(err) {
+                done(err);
+            });
+        });
+    });
+}
+
+// Generates hash using bCrypt
+var createHash = function(password){
+    return bCrypt.hashSync(password, bCrypt.genSaltSync(10), null);
+};

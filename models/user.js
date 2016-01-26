@@ -11,7 +11,10 @@ var userSchema = mongoose.Schema({
 	lastname: { type: String, required: true },
 	accountType: { type: String, required: true, default: "patient" },
 	accessFrom: { type: Array, default: [] },
-	accessTo: { type: Array, default: [] }
+	accessTo: { type: Array, default: [] },
+	verified: { type:Boolean, default: false },
+	resetPasswordToken: String,
+	resetPasswordExpires: Date
 });
 
 /////////////////////////////////

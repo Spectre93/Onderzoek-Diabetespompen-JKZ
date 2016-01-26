@@ -1,5 +1,15 @@
 var LocalStrategy = require('passport-local').Strategy,
-	User = require('../models/user');
+	User = require('../models/user'),
+    nodemailer = require('nodemailer'),
+    verificationToken = require('../models/verificationToken');
+
+var smtpTransport = nodemailer.createTransport({
+    service: "Hotmail",
+    auth: {
+        user: "bijleshhs@outlook.com",
+        pass: "BijlesGeven2015"
+    }
+});
 
 module.exports = function(passport) {
 	// Serialize the user for the session
@@ -47,6 +57,26 @@ module.exports = function(passport) {
 	                // if there is no user with that email
 	                // create the user
 	                var newUser 		= new User();
+
+                    var verificationTokenModel = req.db.model('verificationToken');
+                    var verificationToken = new verificationTokenModel({_userId: newUser._id});
+                    verificationToken.createVerificationToken(function (err, token) {
+                        if (err) return console.log("Couldn't create verification token", err);
+
+                        var mailOptions = {
+                            from: "info@haga-diabetes.nl <info@haga-diabetes.nl>", // sender address.  Must be the same as authenticated user if using GMail.
+                            replyTo: "bijleshhs@outlook.com",
+                            to: email,                                              // receiver
+                            subject: "Registratie HagaDiabetes", // subject
+                            text: "Verifieer je account via http://" + req.get('host') + "/verify/" + token // body
+                        }
+                        smtpTransport.sendMail(mailOptions, function(err) {
+                            if (err) req.flash('error', 'Je verificatiemail kon niet gestuurd worden.');
+                            req.flash('success', 'Je verificatiemail is verstuurd.');
+                        })
+
+                        smtpTransport.close(); // shut down the connection pool, no more messages.  Comment this line out to continue sending emails.
+                    });
 
 	                // set the user's local credentials
 	                newUser.email    	= email;
