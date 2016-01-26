@@ -7,10 +7,20 @@ var express = require("express"),
     parseString = require('xml2js').parseString,
     fs = require('fs'),
     xml2js = require('xml2js'),
+    nodemailer = require('nodemailer'),
     router = express.Router();
 
 var uploading = multer({
     dest: './public/uploads/'
+});
+
+//Configure this to match mail server used
+var smtpTransport = nodemailer.createTransport({
+    service: "Hotmail",
+    auth: {
+        user: "Email here",
+        pass: "Password here"
+    }
 });
 
 module.exports = function() {
@@ -39,6 +49,16 @@ module.exports = function() {
             mkdirp(req.file.destination + '\\' + req.user._id, function(err) {
                 if (err) console.log(err);
             });
+
+            var mailOptions = {
+                to: req.user.accessFrom,
+                from: 'Optional name here <Optional email here>',
+                subject: 'Upload jkzdiabetes.nl van gebruiker ' + req.user.firstname + ' ' + req.user.lastname,
+                text: 'Gebruiker ' + req.user.firstname + ' ' + req.user.lastname + ' heeft zojuist het bestand ' + req.file.originalname + ' geüpload. Ga naar ' + req.hostname + '/profile om het bestand te bekijken.'
+            };
+
+            smtpTransport.sendMail(mailOptions);
+            smtpTransport.close();
         }
 
         if (req.file.mimetype === "text/xml") {

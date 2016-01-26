@@ -7,11 +7,12 @@ var express = require("express"),
     nodemailer = require('nodemailer'),
     async = require('async');
 
+//Configure this to match mail server used
 var smtpTransport = nodemailer.createTransport({
     service: "Hotmail",
     auth: {
-        user: "bijleshhs@outlook.com",
-        pass: "BijlesGeven2015"
+        user: "Email here",
+        pass: "Password here"
     }
 });
 
@@ -226,11 +227,10 @@ module.exports = function(passport) {
                         req.flash('warning', 'Er bestaat geen account met dat e-mailadres.');
                         return res.redirect('/resetpassword');
                     }
-                    console.log(user);
+                    
                     user.resetPasswordToken = token;
                     user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
                     req.user = user;
-                    console.log(user);
 
                     user.save(function(err) {
                         done(err, token, user);
@@ -240,7 +240,7 @@ module.exports = function(passport) {
             function(token, user, done) {
                 var mailOptions = {
                     to: user.email,
-                    from: 'Diabetesteam Haga <bijleshhs@outlook.com>',
+                    from: 'Diabetesteam Haga <Optional email here>',
                     subject: 'Aanpassen wachtwoord hagadiabetes.nl',
                     text: 'Je ontvangt deze mail omdat jij (of iemand anders) een verzoek heeft gedaan om je wachtwoord aan te passen.\nKlik op onderstaande link, of plak hem in je browser om het proces te voltooien:\n\nhttp://' + req.headers.host + '/reset/' + token + '\n\nAls je niet om een reset van je wachtwoord hebt gevraagd, negeer deze mail dan. Je wachtwoord zal dan niet veranderen.\n'
                 };
@@ -287,7 +287,7 @@ module.exports = function(passport) {
             function(user, done) {
                 var mailOptions = {
                     to: user.email,
-                    from: 'Diabetesteam Haga <bijleshhs@outlook.com>',
+                    from: 'Diabetesteam Haga <Optional email here>',
                     subject: 'Je wachtwoord is aangepast',
                     text: 'Hallo,\n\n' +
                         'Dit is een bevestiging dat het wachtwoord voor je account bij hagadiabetes.nl met mailadres ' + user.email +
