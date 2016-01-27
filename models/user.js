@@ -1,5 +1,6 @@
 var mongoose = require('mongoose'),
-	bcrypt = require('bcrypt-nodejs');
+	bcrypt = require('bcrypt-nodejs'),
+	crypto = require('crypto');
 
 /////////////////////////////////////////////////
 // User schema definition: properties per user //
@@ -12,9 +13,11 @@ var userSchema = mongoose.Schema({
 	accountType: { type: String, required: true, default: "patient" },
 	accessFrom: { type: Array, default: [] },
 	accessTo: { type: Array, default: [] },
-	verified: { type:Boolean, default: false },
+	verified: { type: Boolean, default: false },
 	resetPasswordToken: String,
-	resetPasswordExpires: Date
+	resetPasswordExpires: Date,
+    token: { type: String, required: true },
+    createdAt: { type: Date, required: true, default: Date.now, expires: '4h' }
 });
 
 /////////////////////////////////
@@ -29,6 +32,18 @@ userSchema.methods.generateHash = function(password) {
 // Check if PW is valid
 userSchema.methods.validPassword = function(password) {
 	return bcrypt.compareSync(password, this.password);
+};
+
+userSchema.methods.createVerificationToken = function (done) {
+    var user = this;
+    //var token = uuid.v4();
+    var token = crypto.randomBytes(20).toString('hex');
+    user.set('token', token);
+    user.save( function (err) {
+        if (err) return done(err);
+        console.log("Verification token added to user: \n", user);
+        return done(null, token);
+    });
 };
 
 // Create module and expose

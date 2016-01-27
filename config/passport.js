@@ -1,7 +1,6 @@
 var LocalStrategy = require('passport-local').Strategy,
 	User = require('../models/user'),
-    nodemailer = require('nodemailer'),
-    verificationToken = require('../models/verificationToken');
+    nodemailer = require('nodemailer');
 
 var smtpTransport = nodemailer.createTransport({
     service: "Hotmail",
@@ -58,14 +57,11 @@ module.exports = function(passport) {
 	                // create the user
 	                var newUser 		= new User();
 
-                    var verificationTokenModel = req.db.model('verificationToken');
-                    var verificationToken = new verificationTokenModel({_userId: newUser._id});
-                    verificationToken.createVerificationToken(function (err, token) {
+                    newUser.createVerificationToken(function (err, token) {
                         if (err) return console.log("Couldn't create verification token", err);
 
                         var mailOptions = {
                             from: "Name here <Optional email here>", // sender address.  Must be the same as authenticated user if using GMail.
-                            replyTo: "Optional email here",
                             to: email,                                              // receiver
                             subject: "Registratie HagaDiabetes", // subject
                             text: "Verifieer je account via http://" + req.get('host') + "/verify/" + token // body

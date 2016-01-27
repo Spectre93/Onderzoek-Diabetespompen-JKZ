@@ -1,9 +1,9 @@
 var mongoose = require('mongoose');
 
 /////////////////////////////////////////////////
-// Files schema definition: properties per user //
+// File schema definition: properties per file //
 /////////////////////////////////////////////////
-var filesSchema = mongoose.Schema({
+var fileSchema = mongoose.Schema({
 	time_uploaded: { type: Date, required: true },
 	user_id: { type: String, required: true },
 	original_name: { type: String, required: true },
@@ -15,4 +15,4 @@ var filesSchema = mongoose.Schema({
 /////////////////////////////////
 
 // Create module and expose
-module.exports = mongoose.model('Files', filesSchema);
+module.exports = mongoose.model('File', fileSchema);

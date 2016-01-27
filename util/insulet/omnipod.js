@@ -2,7 +2,7 @@ var parseString = require('xml2js').parseString,
     fs = require('fs'),
     xml2js = require('xml2js'),
     mongoose = require('mongoose'),
-    Files = require('../../models/files'),
+    File = require('../../models/file'),
     us = require('underscore');
 
 exports.readFile = function(req, path) {
@@ -27,10 +27,9 @@ exports.readFile = function(req, path) {
 }
 
 exports.prepareFile = function(req, res) {
-	//var filesModel = req.db.model("Files");
 	var json, 
-        newFile = new Files(),
-        fileModel = req.db.model("Files"),
+        newFile = new File(),
+        fileModel = req.db.model("File"),
         currentTime = Date.now();
 
 

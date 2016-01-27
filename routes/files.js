@@ -102,7 +102,7 @@ module.exports = function() {
 
     router.get("/file/:id", isLoggedIn, function(req, res) {
         var id = req.params.id,
-            fileModel = req.db.model("Files");
+            fileModel = req.db.model("File");
 
         fileModel.findById(id, function(err, file) {
             if (err) res.send(err);

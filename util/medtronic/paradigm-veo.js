@@ -3,7 +3,7 @@ var parseString = require('xml2js').parseString,
     xml2js = require('xml2js'),
     mongoose = require('mongoose'),
     baby = require('babyparse'),
-    Files = require('../../models/files');
+    File = require('../../models/file');
 
 exports.readFile = function(req, path) {
 
@@ -205,8 +205,8 @@ exports.readFile = function(req, path) {
 exports.prepareFile = function(req, res) {
     //##### Paradigm Veo #####              
 
-    var newFile = new Files(),
-        fileModel = req.db.model("Files"),
+    var newFile = new File(),
+        fileModel = req.db.model("File"),
         currentTime = Date.now();
         
     var path = req.file.path;

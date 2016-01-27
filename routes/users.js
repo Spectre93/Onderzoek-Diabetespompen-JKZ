@@ -1,6 +1,5 @@
 var express = require("express"),
     router = express.Router(),
-    verificationToken = require('../models/verificationToken'),
     User = require('../models/user'),
     bCrypt = require('bcrypt-nodejs'),
     crypto = require('crypto'),
@@ -54,9 +53,17 @@ module.exports = function(passport) {
         failureRedirect : '/signup', // redirect back to the signup page if there is an error
         failureFlash : true // allow flash messages
     }));
+    
+    router.get('/logout', function(req, res) {
+        req.logout();
+        res.redirect('/');
+    });
 
+    //////////////////////////////////////////
+    // Viewing user profiles and their info //
+    //////////////////////////////////////////
     router.get('/profile', isLoggedIn, function(req, res) {
-        var fileModel = req.db.model("Files");
+        var fileModel = req.db.model("File");
         var userFiles;
 
         fileModel.find( { "user_id": req.user._id }, function(err, files) {
@@ -90,17 +97,9 @@ module.exports = function(passport) {
         });
     });
     
-    router.get('/logout', function(req, res) {
-        req.logout();
-        res.redirect('/');
-    });
-
-    //////////////////////////////////////////
-    // Viewing user profiles and their info //
-    //////////////////////////////////////////
     router.get("/user/:id", isLoggedIn, function(req, res) {
         var userModel = req.db.model("User"),
-            fileModel = req.db.model("Files"),
+            fileModel = req.db.model("File"),
             id = req.params.id;
 
         userModel.findById(id, function(err, user) {
@@ -173,7 +172,6 @@ module.exports = function(passport) {
     //////////////////////////////////////////////////////////////////////////
     // Current user management -- Deleting, updating, password resets, etc. //
     //////////////////////////////////////////////////////////////////////////
-
     router.get("/verify/:token", function (req, res, next) {
         var token = req.params.token;
         verifyUser(req, token, function(err) {
@@ -380,17 +378,13 @@ function isLoggedIn(req, res, next) {
 }
 
 function verifyUser(req, token, done) {
-    var verificationTokenModel = req.db.model('verificationToken'),
-        userModel = req.db.model('User');
+    var userModel = req.db.model('User');
 
-    verificationTokenModel.findOne({token: token}, function (err, doc){
+    userModel.findOne({ token: token }, function (err, user) {
         if (err) return done(err);
-        userModel.findById( doc._userId, function (err, user) {
-            if (err) return done(err);
-            user.verified = true;
-            user.save(function(err) {
-                done(err);
-            });
+        user.verified = true;
+        user.save(function(err) {
+            done(err);
         });
     });
 }
